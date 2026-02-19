@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     if (schoolId) {
       const { ObjectId } = await import('mongodb');
       const schools = await getCollection<School>('schools');
-      const school = await schools.findOne({ _id: new ObjectId(schoolId) });
+      const school = await schools.findOne({ _id: new ObjectId(schoolId) as any });
       if (school) {
         schoolNameFilter = school.name;
       }

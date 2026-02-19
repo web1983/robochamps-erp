@@ -33,7 +33,7 @@ export async function PUT(
     
     // Check if school exists
     const schoolId = new ObjectId(params.id);
-    const existingSchool = await schools.findOne({ _id: schoolId });
+    const existingSchool = await schools.findOne({ _id: schoolId as any });
 
     if (!existingSchool) {
       return NextResponse.json(

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const schools = await getCollection<School>('schools');
     const { ObjectId } = await import('mongodb');
     const school = await schools.findOne({
-      _id: new ObjectId(validated.schoolId),
+      _id: new ObjectId(validated.schoolId) as any,
     });
 
     if (!school) {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       email: validated.email.toLowerCase(),
       passwordHash,
       role,
-      schoolId: school._id,
+      schoolId: school._id?.toString() || validated.schoolId,
       trainerType: validated.trainerType,
     });
 

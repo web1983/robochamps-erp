@@ -96,14 +96,14 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-white/90 mb-2">
               Password *
             </label>
-            <input
+              <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 sm:px-5 py-3 text-base bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all touch-manipulation"
               placeholder="Enter your password"
-            />
+              />
           </div>
 
           <button
