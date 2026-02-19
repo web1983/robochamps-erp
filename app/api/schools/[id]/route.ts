@@ -124,7 +124,7 @@ export async function DELETE(
     const schoolId = new ObjectId(params.id);
     
     // Check if school exists
-    const school = await schools.findOne({ _id: schoolId });
+    const school = await schools.findOne({ _id: schoolId as any });
     if (!school) {
       return NextResponse.json(
         { error: 'School not found' },
@@ -141,7 +141,7 @@ export async function DELETE(
       );
     }
 
-    const result = await schools.deleteOne({ _id: schoolId });
+    const result = await schools.deleteOne({ _id: schoolId as any });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(

@@ -115,10 +115,10 @@ export async function GET(request: NextRequest) {
 
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
       const { ObjectId } = await import('mongodb');
-      query.schoolId = typeof schoolId === 'string' ? new ObjectId(schoolId) : schoolId;
+      query.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
     } else if (schoolIdFilter) {
       const { ObjectId } = await import('mongodb');
-      query.schoolId = new ObjectId(schoolIdFilter);
+      query.schoolId = new ObjectId(schoolIdFilter) as any;
     }
 
     if (startDate || endDate) {

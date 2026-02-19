@@ -37,7 +37,7 @@ export async function PUT(
     if (body.scheduledTime !== undefined) updateData.scheduledTime = body.scheduledTime;
 
     const result = await meetingLinks.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id) as any },
       { $set: updateData }
     );
 
@@ -73,7 +73,7 @@ export async function DELETE(
     const { id } = params;
     const meetingLinks = await getCollection<MeetingLink>('meetingLinks');
 
-    const result = await meetingLinks.deleteOne({ _id: new ObjectId(id) });
+    const result = await meetingLinks.deleteOne({ _id: new ObjectId(id) as any });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Meeting link not found' }, { status: 404 });

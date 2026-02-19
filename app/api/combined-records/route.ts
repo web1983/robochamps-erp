@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
     }
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
       const { ObjectId } = await import('mongodb');
-      attendanceQuery.schoolId = typeof schoolId === 'string' ? new ObjectId(schoolId) : schoolId;
+      attendanceQuery.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
     } else if (schoolIdFilter) {
       const { ObjectId } = await import('mongodb');
-      attendanceQuery.schoolId = new ObjectId(schoolIdFilter);
+      attendanceQuery.schoolId = new ObjectId(schoolIdFilter) as any;
     }
     if (startDate || endDate) {
       attendanceQuery.datetime = {};
@@ -61,10 +61,10 @@ export async function GET(request: NextRequest) {
     }
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
       const { ObjectId } = await import('mongodb');
-      reportsQuery.schoolId = typeof schoolId === 'string' ? new ObjectId(schoolId) : schoolId;
+      reportsQuery.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
     } else if (schoolIdFilter) {
       const { ObjectId } = await import('mongodb');
-      reportsQuery.schoolId = new ObjectId(schoolIdFilter);
+      reportsQuery.schoolId = new ObjectId(schoolIdFilter) as any;
     }
     if (startDate || endDate) {
       reportsQuery.datetime = {};

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       const { ObjectId } = await import('mongodb');
       const schools = await getCollection<School>('schools');
       try {
-        const school = await schools.findOne({ _id: new ObjectId(schoolId) });
+        const school = await schools.findOne({ _id: new ObjectId(schoolId) as any });
         schoolName = school?.name || '';
       } catch (e) {
         // If schoolId is not a valid ObjectId, try as string
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Update click count
     const meetingLinks = await getCollection<MeetingLink>('meetingLinks');
     await meetingLinks.updateOne(
-      { _id: new ObjectId(meetingLinkId) },
+      { _id: new ObjectId(meetingLinkId) as any },
       { $inc: { clickCount: 1 } }
     );
 

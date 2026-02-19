@@ -40,7 +40,7 @@ export async function DELETE(
     }
 
     // Check if user exists
-    const user = await users.findOne({ _id: targetUserId });
+    const user = await users.findOne({ _id: targetUserId as any });
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -48,7 +48,7 @@ export async function DELETE(
       );
     }
 
-    const result = await users.deleteOne({ _id: targetUserId });
+    const result = await users.deleteOne({ _id: targetUserId as any });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
@@ -95,7 +95,7 @@ export async function PUT(
     const targetUserId = new ObjectId(params.id);
     
     // Check if user exists
-    const user = await users.findOne({ _id: targetUserId });
+    const user = await users.findOne({ _id: targetUserId as any });
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -107,7 +107,7 @@ export async function PUT(
     const passwordHash = await hashPassword(validated.newPassword);
 
     const result = await users.updateOne(
-      { _id: targetUserId },
+      { _id: targetUserId as any },
       {
         $set: {
           passwordHash,
