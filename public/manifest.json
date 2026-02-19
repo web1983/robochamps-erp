@@ -1,0 +1,10 @@
+{
+  "name": "Robochamps ERP",
+  "short_name": "Robochamps",
+  "description": "ERP system for Robochamps trainers and teachers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary"
+}
