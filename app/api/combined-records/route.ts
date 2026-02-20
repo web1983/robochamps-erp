@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     }>();
 
     // Add attendance records
-    filteredAttendance.forEach(attendance => {
+    filteredAttendance.forEach((attendance: any) => {
       const dateKey = new Date(attendance.datetime).toDateString();
       const key = `${dateKey}_${attendance.trainerId}_${attendance.schoolId}`;
       
