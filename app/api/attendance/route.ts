@@ -5,10 +5,43 @@ import { getCollection, AttendanceRecord, User, School } from '@/lib/db';
 import { uploadImage } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 30; // 30 seconds max
+
+// Global error handler wrapper
+function withErrorHandling(handler: (req: NextRequest) => Promise<NextResponse>) {
+  return async (req: NextRequest): Promise<NextResponse> => {
+    try {
+      return await handler(req);
+    } catch (error: any) {
+      console.error('API Route Error Handler:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error name:', error?.name);
+      console.error('Error message:', error?.message);
+      console.error('Error stack:', error?.stack);
+      
+      // Always return JSON, never HTML
+      return NextResponse.json(
+        {
+          error: error?.message || 'Internal server error',
+          code: 'INTERNAL_ERROR',
+        },
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          },
+        }
+      );
+    }
+  };
+}
 
 export async function POST(request: NextRequest) {
-  // Wrap everything to ensure JSON is always returned
-  try {
+  return withErrorHandling(async (req: NextRequest) => {
+    // Wrap everything to ensure JSON is always returned
+    try {
     console.log('Attendance POST: Starting...');
     
     // Ensure we can parse the request
@@ -58,7 +91,7 @@ export async function POST(request: NextRequest) {
     let accuracy: string | null = null;
     
     try {
-      formData = await request.formData();
+      formData = await req.formData();
       photo = formData.get('photo') as File;
       classLabel = formData.get('classLabel') as string;
       lat = formData.get('lat') as string | null;
