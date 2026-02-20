@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         return true;
       });
 
-      filteredReports = enrichedReports.filter(report => {
+      filteredReports = enrichedReports.filter((report: any) => {
         if (trainerNameFilter && !report.trainerName.toLowerCase().includes(trainerNameFilter.toLowerCase())) {
           return false;
         }
