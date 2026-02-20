@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const schoolMap = new Map(allSchools.map((s: School) => [s._id?.toString(), s]));
 
     // Remove password hash and enrich with school name
-    const usersList = allUsers.map(user => {
+    const usersList = allUsers.map((user: User) => {
       const school = user.schoolId ? schoolMap.get(user.schoolId?.toString() || '') : null;
       return {
         _id: user._id?.toString(),

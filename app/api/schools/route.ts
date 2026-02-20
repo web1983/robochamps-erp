@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const allSchools = await schools.find({}).sort({ name: 1 }).toArray();
 
     return NextResponse.json({
-      schools: allSchools.map(school => ({
+      schools: allSchools.map((school: School) => ({
         ...school,
         _id: school._id?.toString(),
       }))
