@@ -90,9 +90,9 @@ export async function GET(request: NextRequest) {
     const schoolMap = new Map(allSchools.map((s: School) => [s._id?.toString(), s]));
 
     // Enrich attendance records
-    const enrichedAttendance = attendanceList.map(record => {
-      const trainer = userMap.get(record.trainerId?.toString() || '');
-      const school = schoolMap.get(record.schoolId?.toString() || '');
+    const enrichedAttendance = attendanceList.map((record: AttendanceRecord) => {
+      const trainer = userMap.get(record.trainerId?.toString() || '') as User | undefined;
+      const school = schoolMap.get(record.schoolId?.toString() || '') as School | undefined;
       
       return {
         ...record,
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Enrich reports
-    const enrichedReports = reportsList.map(report => {
+    const enrichedReports = reportsList.map((report: DailyReport) => {
       const author = userMap.get(report.authorId?.toString() || '');
       const school = report.schoolId ? schoolMap.get(report.schoolId?.toString() || '') : null;
       
