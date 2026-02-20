@@ -8,24 +8,33 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Attendance POST: Starting...');
     const session = await getServerSession(authOptions);
+    console.log('Attendance POST: Session:', session ? 'exists' : 'missing');
+    
     if (!session || !(session.user as any).id) {
+      console.log('Attendance POST: Unauthorized - no session or user id');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
     const schoolId = (session.user as any).schoolId;
+    
+    console.log('Attendance POST: User:', { userId, role, schoolId });
 
     // Only trainers can mark attendance
     if (role !== 'TRAINER_ROBOCHAMPS' && role !== 'TRAINER_SCHOOL') {
+      console.log('Attendance POST: Forbidden - not a trainer');
       return NextResponse.json({ error: 'Only trainers can mark attendance' }, { status: 403 });
     }
 
     if (!schoolId) {
-      return NextResponse.json({ error: 'School not found' }, { status: 400 });
+      console.log('Attendance POST: Bad request - no schoolId');
+      return NextResponse.json({ error: 'School not found. Please contact admin to assign you to a school.' }, { status: 400 });
     }
 
+    console.log('Attendance POST: Parsing form data...');
     const formData = await request.formData();
     const photo = formData.get('photo') as File;
     const classLabel = formData.get('classLabel') as string;
@@ -33,34 +42,63 @@ export async function POST(request: NextRequest) {
     const lng = formData.get('lng') as string | null;
     const accuracy = formData.get('accuracy') as string | null;
 
+    console.log('Attendance POST: Form data:', { 
+      hasPhoto: !!photo, 
+      photoSize: photo?.size, 
+      classLabel,
+      hasLocation: !!(lat && lng)
+    });
+
     if (!photo) {
+      console.log('Attendance POST: Bad request - no photo');
       return NextResponse.json({ error: 'Photo is required' }, { status: 400 });
     }
 
     if (!classLabel) {
+      console.log('Attendance POST: Bad request - no classLabel');
       return NextResponse.json({ error: 'Class label is required' }, { status: 400 });
     }
 
     // Upload photo to Cloudinary
+    console.log('Attendance POST: Uploading to Cloudinary...');
     let photoUrl: string;
     try {
       photoUrl = await uploadImage(photo, 'robochamps-attendance');
+      console.log('Attendance POST: Cloudinary upload successful:', photoUrl);
     } catch (uploadError: any) {
-      console.error('Cloudinary upload error:', uploadError);
+      console.error('Attendance POST: Cloudinary upload error:', uploadError);
+      console.error('Attendance POST: Upload error details:', {
+        message: uploadError.message,
+        stack: uploadError.stack,
+        name: uploadError.name
+      });
       return NextResponse.json(
-        { error: `Photo upload failed: ${uploadError.message || 'Please check Cloudinary configuration'}` },
+        { error: `Photo upload failed: ${uploadError.message || 'Please check Cloudinary configuration in Vercel environment variables'}` },
         { status: 500 }
       );
     }
 
     // Create attendance record
+    console.log('Attendance POST: Creating database record...');
     const attendanceRecords = await getCollection<AttendanceRecord>('attendanceRecords');
     const now = new Date();
     const { ObjectId } = await import('mongodb');
     
     // Convert schoolId and trainerId to ObjectId if they're strings
-    const schoolIdObj = typeof schoolId === 'string' ? new ObjectId(schoolId) as any : schoolId;
-    const trainerIdObj = typeof userId === 'string' ? new ObjectId(userId) as any : userId;
+    let schoolIdObj: any;
+    let trainerIdObj: any;
+    
+    try {
+      schoolIdObj = typeof schoolId === 'string' ? new ObjectId(schoolId) as any : schoolId;
+      trainerIdObj = typeof userId === 'string' ? new ObjectId(userId) as any : userId;
+      console.log('Attendance POST: ObjectId conversion successful');
+    } catch (idError: any) {
+      console.error('Attendance POST: ObjectId conversion error:', idError);
+      return NextResponse.json(
+        { error: `Invalid user or school ID: ${idError.message}` },
+        { status: 400 }
+      );
+    }
     
     const record: AttendanceRecord = {
       schoolId: schoolIdObj,
@@ -79,17 +117,25 @@ export async function POST(request: NextRequest) {
       createdAt: now,
     };
 
+    console.log('Attendance POST: Inserting record into database...');
     let result;
     try {
       result = await attendanceRecords.insertOne(record);
+      console.log('Attendance POST: Database insert successful:', result.insertedId);
     } catch (dbError: any) {
-      console.error('Database insert error:', dbError);
+      console.error('Attendance POST: Database insert error:', dbError);
+      console.error('Attendance POST: DB error details:', {
+        message: dbError.message,
+        code: dbError.code,
+        stack: dbError.stack
+      });
       return NextResponse.json(
-        { error: `Failed to save attendance: ${dbError.message || 'Database error'}` },
+        { error: `Failed to save attendance: ${dbError.message || 'Database error. Please check MongoDB connection.'}` },
         { status: 500 }
       );
     }
 
+    console.log('Attendance POST: Success!');
     return NextResponse.json(
       {
         success: true,
