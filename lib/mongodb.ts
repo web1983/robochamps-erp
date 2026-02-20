@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let clientPromise: Promise<MongoClient> | null = null;
 
 function getMongoClient(): Promise<MongoClient> {
   if (!process.env.MONGODB_URI) {
@@ -47,12 +47,11 @@ function getMongoClient(): Promise<MongoClient> {
 }
 
 // Lazy initialization - only connect when actually needed
-clientPromise = new Promise((resolve, reject) => {
-  try {
-    resolve(getMongoClient());
-  } catch (error) {
-    reject(error);
+const lazyClientPromise = (): Promise<MongoClient> => {
+  if (!clientPromise) {
+    clientPromise = getMongoClient();
   }
-});
+  return clientPromise;
+};
 
-export default clientPromise;
+export default lazyClientPromise;
