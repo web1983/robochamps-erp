@@ -11,27 +11,36 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.log('Auth: Missing credentials');
+            return null;
+          }
+
+          const user = await getUserByEmail(credentials.email);
+          if (!user) {
+            console.log('Auth: User not found:', credentials.email);
+            return null;
+          }
+
+          const isValid = await verifyPassword(credentials.password, user.passwordHash);
+          if (!isValid) {
+            console.log('Auth: Invalid password for:', credentials.email);
+            return null;
+          }
+
+          console.log('Auth: Success for:', credentials.email, 'Role:', user.role);
+          return {
+            id: user._id!,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            schoolId: user.schoolId,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
           return null;
         }
-
-        const user = await getUserByEmail(credentials.email);
-        if (!user) {
-          return null;
-        }
-
-        const isValid = await verifyPassword(credentials.password, user.passwordHash);
-        if (!isValid) {
-          return null;
-        }
-
-        return {
-          id: user._id!,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          schoolId: user.schoolId,
-        };
       },
     }),
   ],

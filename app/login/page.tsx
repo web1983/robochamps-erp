@@ -34,7 +34,13 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        console.error('Login error:', result.error);
+        // Check if it's a configuration issue
+        if (result.error.includes('configuration') || result.error.includes('NEXTAUTH')) {
+          setError('Authentication configuration error. Please contact administrator.');
+        } else {
+          setError('Invalid email or password. Please check your credentials.');
+        }
         return;
       }
 
