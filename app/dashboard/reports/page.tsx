@@ -55,7 +55,7 @@ function ReportsContent() {
       <div className="min-h-screen ">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
     );
@@ -109,43 +109,43 @@ function ReportsContent() {
         )}
 
         {reports.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-md text-center">
-            <p className="text-gray-600">No reports found.</p>
+          <div className="bg-white/10 backdrop-blur-lg p-8 rounded-lg shadow-md text-center border border-white/20">
+            <p className="text-white/80">No reports found.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {reports.map((report) => (
-              <div key={report._id} className="bg-white p-6 rounded-lg shadow-md">
+              <div key={report._id} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md border border-white/20">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        report.type === 'TEACHER_TRAINING' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                        report.type === 'TEACHER_TRAINING' ? 'bg-blue-500/30 text-blue-300 border border-blue-400/50' : 'bg-green-500/30 text-green-300 border border-green-400/50'
                       }`}>
                         {report.type === 'TEACHER_TRAINING' ? 'Teacher Training' : 'Trainer Class'}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-white">
                       {report.classLabel || 'Report'}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-white/80">
                       {format(new Date(report.datetime), 'PPP p')}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div>
-                    <strong className="text-gray-700">Topics:</strong>
-                    <p className="text-gray-600">{report.topics}</p>
+                    <strong className="text-white">Topics:</strong>
+                    <p className="text-white/80">{report.topics}</p>
                   </div>
                   <div>
-                    <strong className="text-gray-700">Summary:</strong>
-                    <p className="text-gray-600">{report.summary}</p>
+                    <strong className="text-white">Summary:</strong>
+                    <p className="text-white/80">{report.summary}</p>
                   </div>
                   {report.notes && (
                     <div>
-                      <strong className="text-gray-700">Notes:</strong>
-                      <p className="text-gray-600">{report.notes}</p>
+                      <strong className="text-white">Notes:</strong>
+                      <p className="text-white/80">{report.notes}</p>
                     </div>
                   )}
                 </div>
@@ -164,7 +164,7 @@ export default function ReportsPage() {
       <div className="min-h-screen ">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
     }>
