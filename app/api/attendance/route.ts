@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ 
-      records: enrichedRecords.map(record => ({
+      records: enrichedRecords.map((record: any) => ({
         ...record,
         _id: record._id?.toString(),
         schoolId: record.schoolId?.toString(),
