@@ -7,9 +7,24 @@ import { uploadImage } from '@/lib/cloudinary';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  // Wrap everything to ensure JSON is always returned
   try {
     console.log('Attendance POST: Starting...');
-    const session = await getServerSession(authOptions);
+    
+    // Ensure we can parse the request
+    let session;
+    try {
+      session = await getServerSession(authOptions);
+    } catch (sessionError: any) {
+      console.error('Attendance POST: Session error:', sessionError);
+      return NextResponse.json(
+        { error: 'Authentication error. Please try logging in again.' },
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     console.log('Attendance POST: Session:', session ? 'exists' : 'missing');
     
     if (!session || !(session.user as any).id) {
@@ -35,12 +50,30 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Attendance POST: Parsing form data...');
-    const formData = await request.formData();
-    const photo = formData.get('photo') as File;
-    const classLabel = formData.get('classLabel') as string;
-    const lat = formData.get('lat') as string | null;
-    const lng = formData.get('lng') as string | null;
-    const accuracy = formData.get('accuracy') as string | null;
+    let formData;
+    let photo: File | null = null;
+    let classLabel: string = '';
+    let lat: string | null = null;
+    let lng: string | null = null;
+    let accuracy: string | null = null;
+    
+    try {
+      formData = await request.formData();
+      photo = formData.get('photo') as File;
+      classLabel = formData.get('classLabel') as string;
+      lat = formData.get('lat') as string | null;
+      lng = formData.get('lng') as string | null;
+      accuracy = formData.get('accuracy') as string | null;
+    } catch (formError: any) {
+      console.error('Attendance POST: Form data parsing error:', formError);
+      return NextResponse.json(
+        { error: 'Failed to parse form data. Please ensure all fields are provided.' },
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     console.log('Attendance POST: Form data:', { 
       hasPhoto: !!photo, 
@@ -80,9 +113,35 @@ export async function POST(request: NextRequest) {
 
     // Create attendance record
     console.log('Attendance POST: Creating database record...');
-    const attendanceRecords = await getCollection<AttendanceRecord>('attendanceRecords');
+    let attendanceRecords;
+    try {
+      attendanceRecords = await getCollection<AttendanceRecord>('attendanceRecords');
+    } catch (dbError: any) {
+      console.error('Attendance POST: Database connection error:', dbError);
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     const now = new Date();
-    const { ObjectId } = await import('mongodb');
+    let ObjectId;
+    try {
+      const mongodb = await import('mongodb');
+      ObjectId = mongodb.ObjectId;
+    } catch (importError: any) {
+      console.error('Attendance POST: MongoDB import error:', importError);
+      return NextResponse.json(
+        { error: 'Server configuration error. Please contact support.' },
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     // Convert schoolId and trainerId to ObjectId if they're strings
     let schoolIdObj: any;
@@ -131,7 +190,10 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(
         { error: `Failed to save attendance: ${dbError.message || 'Database error. Please check MongoDB connection.'}` },
-        { status: 500 }
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
@@ -141,7 +203,10 @@ export async function POST(request: NextRequest) {
         success: true,
         attendanceId: result.insertedId.toString(),
       },
-      { status: 201 }
+      { 
+        status: 201,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   } catch (error: any) {
     console.error('Attendance POST: Unhandled error:', error);
