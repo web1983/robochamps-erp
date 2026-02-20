@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Add reports to combined records
-    filteredReports.forEach(report => {
+    filteredReports.forEach((report: any) => {
       const dateKey = new Date(report.datetime).toDateString();
       const reportSchoolId = report.schoolId?.toString() || '';
       const key = `${dateKey}_${report.authorId}_${reportSchoolId}`;
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
 
     // Convert to array and sort by date
     const combinedRecords = Array.from(combinedMap.values())
-      .map(record => ({
+      .map((record: any) => ({
         ...record,
         attendance: record.attendance ? {
           ...record.attendance,
@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
           schoolId: record.attendance.schoolId?.toString(),
           trainerId: record.attendance.trainerId?.toString(),
         } : null,
-        reports: record.reports.map(r => ({
+        reports: record.reports.map((r: any) => ({
           ...r,
           _id: r._id?.toString(),
           schoolId: r.schoolId?.toString(),
