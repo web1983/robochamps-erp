@@ -9,7 +9,10 @@ export const metadata: Metadata = {
   title: 'Robochamps ERP',
   description: 'ERP system for Robochamps trainers and teachers',
   manifest: '/manifest.json',
-  themeColor: '#2563eb',
+};
+
+export const viewport = {
+  themeColor: '#0b0a0f',
 };
 
 export default function RootLayout({

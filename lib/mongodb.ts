@@ -47,10 +47,15 @@ function getMongoClient(): Promise<MongoClient> {
 }
 
 // Lazy initialization - only connect when actually needed
-// Create a promise that only initializes when awaited
-const lazyClientPromise: Promise<MongoClient> = new Promise((resolve, reject) => {
-  // This will only execute when the promise is actually awaited
-  getMongoClient().then(resolve).catch(reject);
-});
+// Export a function that returns the promise, not the promise itself
+// This prevents the promise from being created at module load time
+let _clientPromise: Promise<MongoClient> | null = null;
 
-export default lazyClientPromise;
+function getClientPromise(): Promise<MongoClient> {
+  if (!_clientPromise) {
+    _clientPromise = getMongoClient();
+  }
+  return _clientPromise;
+}
+
+export default getClientPromise;

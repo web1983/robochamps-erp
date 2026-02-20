@@ -5,6 +5,8 @@ import { getCollection, User } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const changePasswordSchema = z.object({
   newPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });

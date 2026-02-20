@@ -5,6 +5,8 @@ import { getCollection, User } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const createUserSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Valid email is required'),

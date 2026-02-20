@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/authOptions';
 import { getCollection, AttendanceRecord, User, School } from '@/lib/db';
 import { uploadImage } from '@/lib/cloudinary';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

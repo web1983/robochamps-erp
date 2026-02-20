@@ -76,7 +76,7 @@ export interface MeetingLinkClick {
 
 export async function getDb() {
   try {
-    const client = await clientPromise;
+    const client = await clientPromise();
     return client.db('robochamps_erp');
   } catch (error: any) {
     console.error('Database connection error:', error);

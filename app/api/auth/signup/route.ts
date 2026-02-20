@@ -3,6 +3,8 @@ import { getUserByEmail, createUser, hashPassword, isFirstUser } from '@/lib/aut
 import { getCollection, School } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const signupSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   schoolId: z.string().min(1, 'School is required'),

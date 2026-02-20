@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/authOptions';
 import { getCollection, MeetingLink } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const meetingLinkSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   url: z.string().url('Invalid URL'),

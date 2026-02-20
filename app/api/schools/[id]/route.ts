@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/authOptions';
 import { getCollection, School } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const schoolSchema = z.object({
   name: z.string().min(1, 'School name is required'),
   locationText: z.string().min(1, 'Location is required'),

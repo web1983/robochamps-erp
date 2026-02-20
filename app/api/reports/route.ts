@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/authOptions';
 import { getCollection, DailyReport } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const reportSchema = z.object({
   type: z.enum(['TEACHER_TRAINING', 'TRAINER_CLASS']),
   schoolId: z.string().optional(),
