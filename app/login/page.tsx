@@ -55,7 +55,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ backgroundColor: '#1b1d1e' }}>
       <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
         <div className="flex justify-center mb-8">
           <img
@@ -135,7 +135,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]">
+      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ backgroundColor: '#1b1d1e' }}>
         <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
           <div className="text-center text-white">Loading...</div>
         </div>

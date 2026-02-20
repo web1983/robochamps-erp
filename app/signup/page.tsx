@@ -77,7 +77,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 flex items-start justify-center p-4 sm:p-6 bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a] overflow-y-auto">
+    <div className="min-h-screen py-8 sm:py-12 flex items-start justify-center p-4 sm:p-6 overflow-y-auto" style={{ backgroundColor: '#1b1d1e' }}>
       <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10 my-auto">
         <div className="flex justify-center mb-8">
           <img

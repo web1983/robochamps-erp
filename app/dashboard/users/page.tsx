@@ -196,7 +196,7 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]">
+      <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
         <Navbar />
         <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
           <p className="text-white">Loading...</p>
@@ -206,7 +206,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]">
+    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
       <Navbar />
       <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8 lg:mb-10">

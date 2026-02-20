@@ -189,7 +189,7 @@ export default function CombinedRecordsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]">
+    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
       <Navbar />
       <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-10">
         <div className="flex justify-between items-center mb-8">

@@ -18,7 +18,7 @@ export default async function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#1a1f3a]" style={{ background: 'linear-gradient(135deg, #0a0e27 0%, #0f172a 50%, #1a1f3a 100%)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
       <Navbar />
       <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <div className="mb-12">
