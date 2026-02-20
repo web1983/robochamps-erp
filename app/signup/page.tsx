@@ -58,7 +58,13 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
+        // Show detailed error message
+        let errorMsg = data.error || 'Signup failed';
+        if (data.details && Array.isArray(data.details)) {
+          const detailMsg = data.details.map((d: any) => `${d.path?.join('.') || 'field'}: ${d.message}`).join(', ');
+          errorMsg = `${errorMsg}. ${detailMsg}`;
+        }
+        throw new Error(errorMsg);
       }
 
       // Redirect to login

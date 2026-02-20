@@ -17,7 +17,26 @@ const signupSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validated = signupSchema.parse(body);
+    
+    // Clean up empty strings for optional fields - convert to undefined
+    const cleanedBody: any = {
+      fullName: body.fullName,
+      email: body.email,
+      password: body.password,
+    };
+    
+    // Only include optional fields if they have values
+    if (body.schoolId && body.schoolId.trim() !== '') {
+      cleanedBody.schoolId = body.schoolId;
+    }
+    if (body.location && body.location.trim() !== '') {
+      cleanedBody.location = body.location;
+    }
+    if (body.trainerType && body.trainerType !== '' && (body.trainerType === 'ROBOCHAMPS' || body.trainerType === 'SCHOOL')) {
+      cleanedBody.trainerType = body.trainerType;
+    }
+    
+    const validated = signupSchema.parse(cleanedBody);
 
     // Check if user already exists
     const existingUser = await getUserByEmail(validated.email);
@@ -85,15 +104,17 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      console.error('Signup validation error:', error.errors);
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: `Validation error: ${errorMessage}`, details: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Signup error:', error);
     return NextResponse.json(
-      { error: 'Failed to create account' },
+      { error: error instanceof Error ? error.message : 'Failed to create account' },
       { status: 500 }
     );
   }
