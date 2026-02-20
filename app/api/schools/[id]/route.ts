@@ -59,7 +59,7 @@ export async function PUT(
     const now = new Date();
     
     const result = await schools.updateOne(
-      { _id: schoolId },
+      { _id: schoolId as any },
       {
         $set: {
           name: validated.name,
@@ -76,7 +76,7 @@ export async function PUT(
       );
     }
 
-    const updatedSchool = await schools.findOne({ _id: schoolId });
+    const updatedSchool = await schools.findOne({ _id: schoolId as any });
 
     return NextResponse.json({
       success: true,
