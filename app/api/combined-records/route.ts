@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     let filteredReports = enrichedReports;
 
     if (trainerNameFilter || trainerEmailFilter) {
-      filteredAttendance = enrichedAttendance.filter(record => {
+      filteredAttendance = enrichedAttendance.filter((record: any) => {
         if (trainerNameFilter && !record.trainerName.toLowerCase().includes(trainerNameFilter.toLowerCase())) {
           return false;
         }

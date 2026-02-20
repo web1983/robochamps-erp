@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
 
     // Filter by trainer name or email (school filtering is done via query)
     if (trainerNameFilter || trainerEmailFilter) {
-      records = records.filter(record => {
+      records = records.filter((record: AttendanceRecord) => {
         const trainer = userMap.get(record.trainerId?.toString() || '');
         
         if (trainerNameFilter && trainer) {
