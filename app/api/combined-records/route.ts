@@ -104,8 +104,8 @@ export async function GET(request: NextRequest) {
 
     // Enrich reports
     const enrichedReports = reportsList.map((report: DailyReport) => {
-      const author = userMap.get(report.authorId?.toString() || '');
-      const school = report.schoolId ? schoolMap.get(report.schoolId?.toString() || '') : null;
+      const author = userMap.get(report.authorId?.toString() || '') as User | undefined;
+      const school = report.schoolId ? (schoolMap.get(report.schoolId?.toString() || '') as School | undefined) : null;
       
       return {
         ...report,
