@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 
 const signupSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
-  schoolId: z.string().min(1, 'School is required'),
-  location: z.string().min(1, 'Location is required'),
-  trainerType: z.enum(['ROBOCHAMPS', 'SCHOOL']),
+  schoolId: z.string().optional(), // Optional for first user (admin)
+  location: z.string().optional(), // Optional for first user (admin)
+  trainerType: z.enum(['ROBOCHAMPS', 'SCHOOL']).optional(), // Optional for first user (admin)
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
@@ -32,21 +32,35 @@ export async function POST(request: NextRequest) {
     const firstUser = await isFirstUser();
     const role = firstUser ? 'ADMIN' : (validated.trainerType === 'ROBOCHAMPS' ? 'TRAINER_ROBOCHAMPS' : 'TRAINER_SCHOOL');
 
+    // For non-admin users, school is required
+    if (!firstUser && !validated.schoolId) {
+      return NextResponse.json(
+        { error: 'School is required' },
+        { status: 400 }
+      );
+    }
+
     // Hash password
     const passwordHash = await hashPassword(validated.password);
 
-    // Find school by ID
-    const schools = await getCollection<School>('schools');
-    const { ObjectId } = await import('mongodb');
-    const school = await schools.findOne({
-      _id: new ObjectId(validated.schoolId) as any,
-    });
+    let schoolId: string | undefined = undefined;
 
-    if (!school) {
-      return NextResponse.json(
-        { error: 'School not found' },
-        { status: 400 }
-      );
+    // Find school by ID (only if schoolId is provided)
+    if (validated.schoolId) {
+      const schools = await getCollection<School>('schools');
+      const { ObjectId } = await import('mongodb');
+      const school = await schools.findOne({
+        _id: new ObjectId(validated.schoolId) as any,
+      });
+
+      if (!school) {
+        return NextResponse.json(
+          { error: 'School not found' },
+          { status: 400 }
+        );
+      }
+
+      schoolId = school._id?.toString() || validated.schoolId;
     }
 
     // Create user
@@ -55,8 +69,8 @@ export async function POST(request: NextRequest) {
       email: validated.email.toLowerCase(),
       passwordHash,
       role,
-      schoolId: school._id?.toString() || validated.schoolId,
-      trainerType: validated.trainerType,
+      schoolId,
+      trainerType: firstUser ? undefined : validated.trainerType,
     });
 
     return NextResponse.json(

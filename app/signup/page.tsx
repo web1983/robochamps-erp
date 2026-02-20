@@ -113,7 +113,7 @@ export default function SignupPage() {
               School Name *
             </label>
             <select
-              required
+              required={schools.length > 0}
               value={formData.schoolId}
               onChange={(e) => {
                 const selectedSchool = schools.find(s => s._id === e.target.value);
@@ -126,7 +126,7 @@ export default function SignupPage() {
               disabled={loadingSchools}
               className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white focus:outline-none transition-all"
             >
-              <option value="" className="bg-gray-900">{loadingSchools ? 'Loading schools...' : 'Select a school'}</option>
+              <option value="" className="bg-gray-900">{loadingSchools ? 'Loading schools...' : schools.length === 0 ? 'No schools available (First user will be admin)' : 'Select a school'}</option>
               {schools.map((school) => (
                 <option key={school._id} value={school._id} className="bg-gray-900">
                   {school.name} - {school.locationText}
@@ -135,7 +135,7 @@ export default function SignupPage() {
             </select>
             {schools.length === 0 && !loadingSchools && (
               <p className="text-xs text-white/60 mt-2">
-                No schools available. Please contact admin to add your school.
+                No schools available. The first user will become an admin and can add schools later.
               </p>
             )}
           </div>
@@ -146,11 +146,11 @@ export default function SignupPage() {
             </label>
             <input
               type="text"
-              required
+              required={schools.length > 0}
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all"
-              placeholder="Auto-filled from school selection"
+              placeholder={schools.length === 0 ? "Optional for first user (admin)" : "Auto-filled from school selection"}
             />
           </div>
 
@@ -159,14 +159,20 @@ export default function SignupPage() {
               Trainer Type *
             </label>
             <select
-              required
+              required={schools.length > 0}
               value={formData.trainerType}
               onChange={(e) => setFormData({ ...formData, trainerType: e.target.value as 'ROBOCHAMPS' | 'SCHOOL' })}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white focus:outline-none transition-all"
+              disabled={schools.length === 0}
+              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="SCHOOL" className="bg-gray-900">School Trainer</option>
               <option value="ROBOCHAMPS" className="bg-gray-900">Robochamps Trainer</option>
             </select>
+            {schools.length === 0 && (
+              <p className="text-xs text-white/60 mt-2">
+                Trainer type not required for first user (admin)
+              </p>
+            )}
           </div>
 
           <div>
