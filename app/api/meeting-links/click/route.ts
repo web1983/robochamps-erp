@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { getCollection, MeetingLink, MeetingLinkClick } from '@/lib/db';
+import { getCollection, MeetingLink, MeetingLinkClick, School } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
@@ -26,8 +26,6 @@ export async function POST(request: NextRequest) {
     // Get school name if user has schoolId
     let schoolName = '';
     if (schoolId) {
-      const { getCollection, School } = await import('@/lib/db');
-      const { ObjectId } = await import('mongodb');
       const schools = await getCollection<School>('schools');
       try {
         const school = await schools.findOne({ _id: new ObjectId(schoolId) as any });
