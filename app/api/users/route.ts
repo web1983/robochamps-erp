@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const allUsers = await users.find({}).sort({ createdAt: -1 }).toArray();
     const allSchools = await schools.find({}).toArray();
     
-    const schoolMap = new Map(allSchools.map(s => [s._id?.toString(), s]));
+    const schoolMap = new Map(allSchools.map((s: School) => [s._id?.toString(), s]));
 
     // Remove password hash and enrich with school name
     const usersList = allUsers.map(user => {

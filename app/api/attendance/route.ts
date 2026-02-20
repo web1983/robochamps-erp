@@ -140,8 +140,8 @@ export async function GET(request: NextRequest) {
     const allUsers = await users.find({}).toArray();
     const allSchools = await schools.find({}).toArray();
     
-    const userMap = new Map(allUsers.map(u => [u._id?.toString(), u]));
-    const schoolMap = new Map(allSchools.map(s => [s._id?.toString(), s]));
+    const userMap = new Map(allUsers.map((u: User) => [u._id?.toString(), u]));
+    const schoolMap = new Map(allSchools.map((s: School) => [s._id?.toString(), s]));
 
     // Filter by trainer name or email (school filtering is done via query)
     if (trainerNameFilter || trainerEmailFilter) {
