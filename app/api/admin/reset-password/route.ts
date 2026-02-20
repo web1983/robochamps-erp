@@ -37,15 +37,12 @@ export async function POST(request: NextRequest) {
     // If user doesn't exist, create admin user
     if (!user) {
       const { createUser } = await import('@/lib/auth');
-      const now = new Date();
       
       user = await createUser({
         name: 'Admin User',
         email: validated.email.toLowerCase(),
         passwordHash: await hashPassword(validated.newPassword),
         role: 'ADMIN',
-        createdAt: now,
-        updatedAt: now,
       });
       
       return NextResponse.json({
