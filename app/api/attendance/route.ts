@@ -166,8 +166,8 @@ export async function GET(request: NextRequest) {
 
     // Enrich records with trainer and school info
     const enrichedRecords = records.map((record: AttendanceRecord) => {
-      const trainer = userMap.get(record.trainerId?.toString() || '');
-      const school = schoolMap.get(record.schoolId?.toString() || '');
+      const trainer = userMap.get(record.trainerId?.toString() || '') as User | undefined;
+      const school = schoolMap.get(record.schoolId?.toString() || '') as School | undefined;
       
       return {
         ...record,
