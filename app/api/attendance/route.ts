@@ -144,14 +144,23 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Attendance error:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Attendance POST: Unhandled error:', error);
+    console.error('Attendance POST: Error stack:', error.stack);
+    console.error('Attendance POST: Error name:', error.name);
+    console.error('Attendance POST: Error message:', error.message);
+    
+    // Always return JSON, never HTML
     return NextResponse.json(
       { 
-        error: error.message || 'Failed to mark attendance',
+        error: error.message || 'Failed to mark attendance. Please check server logs.',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
   }
 }
