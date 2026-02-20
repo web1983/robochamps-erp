@@ -107,7 +107,10 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(
         { error: `Photo upload failed: ${uploadError.message || 'Please check Cloudinary configuration in Vercel environment variables'}` },
-        { status: 500 }
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 

@@ -12,39 +12,90 @@ function ensureCloudinaryConfig() {
 }
 
 export async function uploadImage(file: File | Blob, folder: string = 'robochamps-attendance'): Promise<string> {
-  ensureCloudinaryConfig();
-  
-  // Check if Cloudinary is configured
-  const config = cloudinary.config();
-  if (!config.cloud_name || !config.api_key || !config.api_secret) {
-    throw new Error('Cloudinary is not configured. Please check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
-  }
-  
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  try {
+    ensureCloudinaryConfig();
+    
+    // Check if Cloudinary is configured
+    const config = cloudinary.config();
+    if (!config.cloud_name || !config.api_key || !config.api_secret) {
+      throw new Error('Cloudinary is not configured. Please check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+    }
+    
+    let arrayBuffer: ArrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+    } catch (bufferError: any) {
+      throw new Error(`Failed to read file: ${bufferError.message || 'Unknown error'}`);
+    }
+    
+    const buffer = Buffer.from(arrayBuffer);
 
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream(
-      {
-        folder,
-        resource_type: 'image',
-        transformation: [
-          { quality: 'auto' },
-          { fetch_format: 'auto' },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error);
-          reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`));
-        } else if (result?.secure_url) {
-          resolve(result.secure_url);
-        } else {
-          reject(new Error('Upload failed: No URL returned from Cloudinary'));
+    // Wrap in Promise with timeout to prevent hanging
+    return new Promise((resolve, reject) => {
+      let resolved = false;
+      
+      // Set a timeout (30 seconds)
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          reject(new Error('Cloudinary upload timeout: Upload took too long (30s limit)'));
+        }
+      }, 30000);
+      
+      try {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: 'image',
+            transformation: [
+              { quality: 'auto' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (resolved) return; // Already handled
+            
+            try {
+              clearTimeout(timeout);
+              resolved = true;
+              
+              if (error) {
+                console.error('Cloudinary upload error:', error);
+                reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`));
+              } else if (result?.secure_url) {
+                resolve(result.secure_url);
+              } else {
+                reject(new Error('Upload failed: No URL returned from Cloudinary'));
+              }
+            } catch (callbackError: any) {
+              console.error('Cloudinary callback error:', callbackError);
+              reject(new Error(`Cloudinary callback error: ${callbackError.message || 'Unknown error'}`));
+            }
+          }
+        );
+        
+        uploadStream.on('error', (streamError: any) => {
+          if (resolved) return;
+          clearTimeout(timeout);
+          resolved = true;
+          console.error('Cloudinary stream error:', streamError);
+          reject(new Error(`Cloudinary stream error: ${streamError.message || 'Unknown error'}`));
+        });
+        
+        uploadStream.end(buffer);
+      } catch (streamSetupError: any) {
+        clearTimeout(timeout);
+        if (!resolved) {
+          resolved = true;
+          console.error('Cloudinary stream setup error:', streamSetupError);
+          reject(new Error(`Cloudinary stream setup failed: ${streamSetupError.message || 'Unknown error'}`));
         }
       }
-    ).end(buffer);
-  });
+    });
+  } catch (error: any) {
+    console.error('Cloudinary upload function error:', error);
+    throw error; // Re-throw to be caught by caller
+  }
 }
 
 export function getCloudinarySignature(folder: string = 'robochamps-attendance') {
