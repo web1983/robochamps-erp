@@ -50,12 +50,31 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     // Wrap in Promise with timeout to prevent hanging
     return new Promise((resolve, reject) => {
       let resolved = false;
+      let rejectionHandled = false;
+      
+      // Helper to safely reject only once
+      const safeReject = (error: Error) => {
+        if (!resolved && !rejectionHandled) {
+          rejectionHandled = true;
+          resolved = true;
+          clearTimeout(timeout);
+          reject(error);
+        }
+      };
+      
+      // Helper to safely resolve only once
+      const safeResolve = (url: string) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          resolve(url);
+        }
+      };
       
       // Set a timeout (30 seconds)
       const timeout = setTimeout(() => {
         if (!resolved) {
-          resolved = true;
-          reject(new Error('Cloudinary upload timeout: Upload took too long (30s limit)'));
+          safeReject(new Error('Cloudinary upload timeout: Upload took too long (30s limit)'));
         }
       }, 30000);
       
@@ -73,9 +92,6 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
             if (resolved) return; // Already handled
             
             try {
-              clearTimeout(timeout);
-              resolved = true;
-              
               if (error) {
                 console.error('Cloudinary upload error:', error);
                 console.error('Cloudinary error details:', {
@@ -91,8 +107,9 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
                   errorMessage = 'Cloudinary authentication failed. Please check your API credentials in Vercel environment variables.';
                 } else if (error.http_code === 400) {
                   errorMessage = `Cloudinary upload failed: ${error.message || 'Invalid request'}`;
-                } else if (error.http_code === 500) {
-                  errorMessage = 'Cloudinary server error. Please try again later or check Cloudinary status.';
+                } else if (error.http_code === 500 || error.message?.includes('Server return invalid JSON')) {
+                  // HTML error page indicates credential or configuration issue
+                  errorMessage = 'Cloudinary API error (500). Please verify your Cloudinary credentials are correct in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. The API is returning an error page, which usually means invalid credentials.';
                 } else if (error.message) {
                   // Check if error message contains HTML (indicates API error page)
                   if (error.message.includes('<!DOCTYPE') || error.message.includes('Server return invalid JSON')) {
@@ -102,35 +119,38 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
                   }
                 }
                 
-                reject(new Error(errorMessage));
+                safeReject(new Error(errorMessage));
               } else if (result?.secure_url) {
-                resolve(result.secure_url);
+                safeResolve(result.secure_url);
               } else {
-                reject(new Error('Upload failed: No URL returned from Cloudinary'));
+                safeReject(new Error('Upload failed: No URL returned from Cloudinary'));
               }
             } catch (callbackError: any) {
               console.error('Cloudinary callback error:', callbackError);
-              reject(new Error(`Cloudinary callback error: ${callbackError.message || 'Unknown error'}`));
+              safeReject(new Error(`Cloudinary callback error: ${callbackError.message || 'Unknown error'}`));
             }
           }
         );
         
         uploadStream.on('error', (streamError: any) => {
           if (resolved) return;
-          clearTimeout(timeout);
-          resolved = true;
           console.error('Cloudinary stream error:', streamError);
-          reject(new Error(`Cloudinary stream error: ${streamError.message || 'Unknown error'}`));
+          safeReject(new Error(`Cloudinary stream error: ${streamError.message || 'Unknown error'}`));
+        });
+        
+        // Handle any unhandled stream errors
+        uploadStream.on('close', () => {
+          // Stream closed, but if not resolved, something went wrong
+          if (!resolved) {
+            console.error('Cloudinary stream closed without resolution');
+            safeReject(new Error('Cloudinary upload stream closed unexpectedly'));
+          }
         });
         
         uploadStream.end(buffer);
       } catch (streamSetupError: any) {
-        clearTimeout(timeout);
-        if (!resolved) {
-          resolved = true;
-          console.error('Cloudinary stream setup error:', streamSetupError);
-          reject(new Error(`Cloudinary stream setup failed: ${streamSetupError.message || 'Unknown error'}`));
-        }
+        console.error('Cloudinary stream setup error:', streamSetupError);
+        safeReject(new Error(`Cloudinary stream setup failed: ${streamSetupError.message || 'Unknown error'}`));
       }
     });
   } catch (error: any) {
