@@ -53,7 +53,7 @@ function TrainerReportsContent() {
       <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
     );
@@ -64,7 +64,7 @@ function TrainerReportsContent() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Reports</h1>
+          <h1 className="text-3xl font-bold text-white">My Reports</h1>
           <Link
             href="/trainer/reports/new"
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
@@ -74,7 +74,7 @@ function TrainerReportsContent() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-lg">
             {error}
           </div>
         )}
@@ -134,7 +134,7 @@ export default function TrainerReportsPage() {
       <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
     }>

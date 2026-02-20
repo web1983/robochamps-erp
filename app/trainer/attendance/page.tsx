@@ -91,10 +91,24 @@ export default function MarkAttendancePage() {
         body: formData,
       });
 
-      const data = await response.json();
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // If not JSON, get text and try to parse
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Server error (${response.status}): ${text.substring(0, 200)}`);
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to mark attendance');
+        throw new Error(data.error || `Failed to mark attendance (${response.status})`);
       }
 
       router.push('/trainer/dashboard?success=Attendance marked successfully');
@@ -109,19 +123,19 @@ export default function MarkAttendancePage() {
     <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold text-white mb-8">
           Mark Attendance
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md space-y-6 border border-white/20">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Class Label *
             </label>
             <input
@@ -130,12 +144,12 @@ export default function MarkAttendancePage() {
               value={classLabel}
               onChange={(e) => setClassLabel(e.target.value)}
               placeholder="e.g., Grade 6-A, Robotics Class 1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Class Photo *
             </label>
             <input
@@ -160,7 +174,7 @@ export default function MarkAttendancePage() {
                   alt="Preview"
                   className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
                 />
-                <p className="text-sm text-gray-600 mt-2 text-center">
+                <p className="text-sm text-white/80 mt-2 text-center">
                   Photo captured: {photo?.name}
                 </p>
               </div>
@@ -168,7 +182,7 @@ export default function MarkAttendancePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Location (Optional)
             </label>
             <button
@@ -179,22 +193,22 @@ export default function MarkAttendancePage() {
               📍 Get Location
             </button>
             {location && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
+              <div className="mt-4 p-3 bg-green-500/20 border border-green-400/50 rounded-lg">
+                <p className="text-sm text-green-300">
                   <strong>Latitude:</strong> {location.lat.toFixed(6)}
                 </p>
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-green-300">
                   <strong>Longitude:</strong> {location.lng.toFixed(6)}
                 </p>
                 {location.accuracy && (
-                  <p className="text-sm text-green-800">
+                  <p className="text-sm text-green-300">
                     <strong>Accuracy:</strong> {location.accuracy.toFixed(2)} meters
                   </p>
                 )}
               </div>
             )}
             {locationError && (
-              <p className="mt-2 text-sm text-yellow-600">{locationError}</p>
+              <p className="mt-2 text-sm text-yellow-300">{locationError}</p>
             )}
           </div>
 

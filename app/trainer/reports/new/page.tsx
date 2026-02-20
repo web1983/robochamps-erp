@@ -53,19 +53,19 @@ export default function NewReportPage() {
     <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold text-white mb-8">
           Create Daily Class Report
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md space-y-6 border border-white/20">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Class Label
             </label>
             <input
@@ -73,12 +73,12 @@ export default function NewReportPage() {
               value={formData.classLabel}
               onChange={(e) => setFormData({ ...formData, classLabel: e.target.value })}
               placeholder="e.g., Grade 6-A"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Date & Time *
             </label>
             <input
@@ -86,12 +86,12 @@ export default function NewReportPage() {
               required
               value={formData.datetime}
               onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Topics Taught *
             </label>
             <textarea
@@ -100,12 +100,12 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, topics: e.target.value })}
               placeholder="What topics did you teach today?"
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Summary *
             </label>
             <textarea
@@ -114,12 +114,12 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
               placeholder="Brief summary of the class"
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Additional Notes
             </label>
             <textarea
@@ -127,7 +127,7 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Any additional notes or remarks"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function NewReportPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-white/10 border border-white/20 text-white py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors"
             >
               Cancel
             </button>
