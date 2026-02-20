@@ -84,7 +84,7 @@ export async function getDb() {
   }
 }
 
-export async function getCollection<T>(name: string) {
+export async function getCollection<T>(name: string): Promise<any> {
   const db = await getDb();
-  return db.collection<T>(name) as any;
+  return db.collection(name) as any;
 }
