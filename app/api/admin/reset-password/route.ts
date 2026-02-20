@@ -30,15 +30,29 @@ export async function POST(request: NextRequest) {
 
     // Find user by email
     const users = await getCollection<User>('users');
-    const user = await users.findOne({ 
+    let user = await users.findOne({ 
       email: validated.email.toLowerCase() 
     });
 
+    // If user doesn't exist, create admin user
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      const { createUser } = await import('@/lib/auth');
+      const now = new Date();
+      
+      user = await createUser({
+        name: 'Admin User',
+        email: validated.email.toLowerCase(),
+        passwordHash: await hashPassword(validated.newPassword),
+        role: 'ADMIN',
+        createdAt: now,
+        updatedAt: now,
+      });
+      
+      return NextResponse.json({
+        success: true,
+        message: `Admin user created and password set for ${validated.email}`,
+        created: true,
+      });
     }
 
     // Hash new password
