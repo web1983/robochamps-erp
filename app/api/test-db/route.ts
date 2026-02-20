@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
-    const client = await clientPromise;
+    const client = await clientPromise();
     await client.db('admin').command({ ping: 1 });
     return NextResponse.json({ 
       success: true, 
