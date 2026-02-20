@@ -135,17 +135,27 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
         uploadStream.on('error', (streamError: any) => {
           if (resolved) return;
           console.error('Cloudinary stream error:', streamError);
-          safeReject(new Error(`Cloudinary stream error: ${streamError.message || 'Unknown error'}`));
+          console.error('Cloudinary stream error details:', {
+            code: streamError.code,
+            message: streamError.message,
+            name: streamError.name
+          });
+          
+          // Check for specific error codes
+          let errorMessage = 'Cloudinary stream error';
+          if (streamError.code === 'ECONNREFUSED' || streamError.code === 'ENOTFOUND') {
+            errorMessage = 'Cannot connect to Cloudinary. Please check your network connection and Cloudinary credentials.';
+          } else if (streamError.code === 'ETIMEDOUT') {
+            errorMessage = 'Cloudinary connection timeout. Please try again.';
+          } else if (streamError.message) {
+            errorMessage = `Cloudinary stream error: ${streamError.message}`;
+          }
+          
+          safeReject(new Error(errorMessage));
         });
         
-        // Handle any unhandled stream errors
-        uploadStream.on('close', () => {
-          // Stream closed, but if not resolved, something went wrong
-          if (!resolved) {
-            console.error('Cloudinary stream closed without resolution');
-            safeReject(new Error('Cloudinary upload stream closed unexpectedly'));
-          }
-        });
+        // Note: 'close' event fires after stream ends, which is normal
+        // We don't need to handle it as an error since the callback handles success/failure
         
         uploadStream.end(buffer);
       } catch (streamSetupError: any) {
