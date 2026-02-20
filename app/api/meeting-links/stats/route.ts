@@ -68,13 +68,13 @@ export async function GET(request: NextRequest) {
     const allClicks = await clicks.find(query).sort({ clickedAt: -1 }).toArray();
 
     // Get recent clicks (last 100 for display)
-    const recentClicks = allClicks.slice(0, 100).map(click => ({
+    const recentClicks = allClicks.slice(0, 100).map((click: MeetingLinkClick) => ({
       ...click,
       _id: click._id?.toString(),
     }));
 
     return NextResponse.json({
-      meetingLinks: links.map(link => ({
+      meetingLinks: links.map((link: MeetingLink) => ({
         ...link,
         _id: link._id?.toString(),
         scheduledDate: link.scheduledDate ? link.scheduledDate.toISOString().split('T')[0] : undefined,
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       })),
       recentClicks,
       totalClicks: allClicks.length,
-      filteredClicks: allClicks.map(click => ({
+      filteredClicks: allClicks.map((click: MeetingLinkClick) => ({
         ...click,
         _id: click._id?.toString(),
       })),

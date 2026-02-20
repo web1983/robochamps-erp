@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     }).toArray();
 
     return NextResponse.json({ 
-      meetingLinks: links.map(link => ({
+      meetingLinks: links.map((link: MeetingLink) => ({
         ...link,
         _id: link._id?.toString(),
         scheduledDate: link.scheduledDate ? link.scheduledDate.toISOString().split('T')[0] : undefined,
