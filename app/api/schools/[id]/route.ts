@@ -46,7 +46,7 @@ export async function PUT(
     const duplicateSchool = await schools.findOne({
       name: validated.name,
       locationText: validated.locationText,
-      _id: { $ne: schoolId },
+      _id: { $ne: schoolId as any },
     });
 
     if (duplicateSchool) {
