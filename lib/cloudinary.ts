@@ -30,12 +30,14 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     }
     
     // Reconfigure if needed
-    if (!config.cloud_name) {
+    if (!config.cloud_name || config.cloud_name !== cloudName) {
       cloudinary.config({
         cloud_name: cloudName,
         api_key: apiKey,
         api_secret: apiSecret,
+        secure: true, // Always use HTTPS
       });
+      console.log('Cloudinary configured with cloud_name:', cloudName);
     }
     
     let arrayBuffer: ArrayBuffer;
