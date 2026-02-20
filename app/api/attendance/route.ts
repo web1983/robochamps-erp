@@ -42,15 +42,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload photo to Cloudinary
-    const photoUrl = await uploadImage(photo, 'robochamps-attendance');
+    let photoUrl: string;
+    try {
+      photoUrl = await uploadImage(photo, 'robochamps-attendance');
+    } catch (uploadError: any) {
+      console.error('Cloudinary upload error:', uploadError);
+      return NextResponse.json(
+        { error: `Photo upload failed: ${uploadError.message || 'Please check Cloudinary configuration'}` },
+        { status: 500 }
+      );
+    }
 
     // Create attendance record
     const attendanceRecords = await getCollection<AttendanceRecord>('attendanceRecords');
     const now = new Date();
+    const { ObjectId } = await import('mongodb');
+    
+    // Convert schoolId and trainerId to ObjectId if they're strings
+    const schoolIdObj = typeof schoolId === 'string' ? new ObjectId(schoolId) as any : schoolId;
+    const trainerIdObj = typeof userId === 'string' ? new ObjectId(userId) as any : userId;
     
     const record: AttendanceRecord = {
-      schoolId,
-      trainerId: userId,
+      schoolId: schoolIdObj,
+      trainerId: trainerIdObj,
       classLabel,
       datetime: now,
       photoUrl,
@@ -65,7 +79,16 @@ export async function POST(request: NextRequest) {
       createdAt: now,
     };
 
-    const result = await attendanceRecords.insertOne(record);
+    let result;
+    try {
+      result = await attendanceRecords.insertOne(record);
+    } catch (dbError: any) {
+      console.error('Database insert error:', dbError);
+      return NextResponse.json(
+        { error: `Failed to save attendance: ${dbError.message || 'Database error'}` },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -76,8 +99,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error: any) {
     console.error('Attendance error:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: error.message || 'Failed to mark attendance' },
+      { 
+        error: error.message || 'Failed to mark attendance',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

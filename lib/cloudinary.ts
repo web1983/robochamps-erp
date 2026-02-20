@@ -13,6 +13,13 @@ function ensureCloudinaryConfig() {
 
 export async function uploadImage(file: File | Blob, folder: string = 'robochamps-attendance'): Promise<string> {
   ensureCloudinaryConfig();
+  
+  // Check if Cloudinary is configured
+  const config = cloudinary.config();
+  if (!config.cloud_name || !config.api_key || !config.api_secret) {
+    throw new Error('Cloudinary is not configured. Please check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+  }
+  
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
@@ -28,11 +35,12 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
       },
       (error, result) => {
         if (error) {
-          reject(error);
+          console.error('Cloudinary upload error:', error);
+          reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`));
         } else if (result?.secure_url) {
           resolve(result.secure_url);
         } else {
-          reject(new Error('Upload failed'));
+          reject(new Error('Upload failed: No URL returned from Cloudinary'));
         }
       }
     ).end(buffer);
