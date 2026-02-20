@@ -13,11 +13,8 @@ const schoolSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !(session.user as any).id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // Make GET public so signup page can fetch schools
+    // POST still requires authentication
     const schools = await getCollection<School>('schools');
     const allSchools = await schools.find({}).sort({ name: 1 }).toArray();
 
