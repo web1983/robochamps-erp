@@ -27,6 +27,17 @@ export async function GET() {
       );
     }
 
+    // At this point, we know all three are defined (TypeScript doesn't know this, so we assert)
+    if (!cloudName || !apiKey || !apiSecret) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unexpected error: credentials are undefined',
+        },
+        { status: 500 }
+      );
+    }
+
     // Log credential info (without exposing secrets)
     console.log('Cloudinary test: cloud_name:', cloudName);
     console.log('Cloudinary test: API key (first 4):', apiKey.substring(0, 4));
