@@ -109,6 +109,14 @@ function TrainerDashboardContent() {
       href: '/trainer/reports',
       color: 'bg-orange-50',
     },
+    {
+      title: 'Combined Sheet',
+      description: 'View and download your attendance and reports together.',
+      icon: '📋',
+      action: 'View Sheet',
+      href: '/trainer/combined-sheet',
+      color: 'bg-indigo-50',
+    },
   ];
 
   return (
@@ -151,6 +159,12 @@ function TrainerDashboardContent() {
                   className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
                 >
                   View Reports
+                </Link>
+                <Link
+                  href="/trainer/combined-sheet"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                >
+                  Combined Sheet
                 </Link>
               </div>
 

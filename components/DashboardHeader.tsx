@@ -51,6 +51,12 @@ export default function DashboardHeader({
           >
             View Reports
           </Link>
+          <Link
+            href="/trainer/combined-sheet"
+            className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+          >
+            Combined Sheet
+          </Link>
         </>
       );
     } else {
