@@ -80,7 +80,9 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     
     // Verify credentials before attempting upload
     try {
+      console.log('Cloudinary upload: Verifying credentials...');
       await verifyCloudinaryCredentials();
+      console.log('Cloudinary upload: Credentials verified, proceeding with upload...');
     } catch (verifyError: any) {
       console.error('Cloudinary credential verification failed:', verifyError);
       throw verifyError; // Re-throw with the verification error message
@@ -97,35 +99,24 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     const buffer = Buffer.from(arrayBuffer);
     console.log('Cloudinary upload: File size:', buffer.length, 'bytes');
     
-    // Try using buffer directly instead of data URI (more efficient)
-    console.log('Cloudinary upload: Attempting upload with buffer...');
+    // Convert buffer to base64 data URI for upload
+    console.log('Cloudinary upload: Converting to base64 data URI...');
+    const base64String = buffer.toString('base64');
+    const dataUri = `data:image/jpeg;base64,${base64String}`;
+    
+    console.log('Cloudinary upload: Attempting upload with data URI (size:', base64String.length, 'chars)...');
     
     try {
-      // Use upload with buffer directly
-      const result = await new Promise<any>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder,
-            resource_type: 'image',
-            transformation: [
-              { quality: 'auto' },
-              { fetch_format: 'auto' },
-            ],
-          },
-          (error, result) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          }
-        );
-        
-        uploadStream.on('error', (streamError) => {
-          reject(streamError);
-        });
-        
-        uploadStream.end(buffer);
+      // Use cloudinary.uploader.upload with data URI
+      // This method is more reliable than upload_stream
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder,
+        resource_type: 'image',
+        transformation: [
+          { quality: 'auto' },
+          { fetch_format: 'auto' },
+        ],
+        timeout: 60000, // 60 second timeout for larger files
       });
       
       if (result?.secure_url) {
@@ -146,11 +137,11 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
       // Provide more helpful error messages
       let errorMessage = 'Cloudinary upload failed';
       if (uploadError.http_code === 401) {
-        errorMessage = 'Cloudinary authentication failed. Please check your API credentials in Vercel environment variables.';
+        errorMessage = 'Cloudinary authentication failed (401). Please check your API credentials in Vercel environment variables.';
       } else if (uploadError.http_code === 400) {
-        errorMessage = `Cloudinary upload failed: ${uploadError.message || 'Invalid request'}`;
+        errorMessage = `Cloudinary upload failed (400): ${uploadError.message || 'Invalid request'}`;
       } else if (uploadError.http_code === 500 || uploadError.message?.includes('Server return invalid JSON')) {
-        errorMessage = 'Cloudinary API error (500). Your credentials may be invalid. Please verify all three credentials in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. Make sure you copied the FULL API secret (usually 40+ characters) from Cloudinary dashboard.';
+        errorMessage = 'Cloudinary API error (500). Your credentials may be invalid. Please verify all three credentials in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. Make sure you copied the FULL API secret (usually 40+ characters) from Cloudinary dashboard. The API is returning an HTML error page, which usually means invalid credentials.';
       } else if (uploadError.message) {
         // Check if error message contains HTML (indicates API error page)
         if (uploadError.message.includes('<!DOCTYPE') || uploadError.message.includes('Server return invalid JSON')) {
