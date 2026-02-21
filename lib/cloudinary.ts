@@ -21,6 +21,42 @@ function ensureCloudinaryConfig() {
   }
 }
 
+// Verify Cloudinary credentials before upload
+async function verifyCloudinaryCredentials(): Promise<void> {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error('Cloudinary credentials are not configured');
+  }
+  
+  // Configure Cloudinary
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  });
+  
+  // Test credentials with a ping
+  try {
+    await cloudinary.api.ping();
+    console.log('Cloudinary credentials verified successfully');
+  } catch (pingError: any) {
+    console.error('Cloudinary credential verification failed:', pingError);
+    if (pingError.http_code === 401) {
+      throw new Error('Invalid Cloudinary API credentials. Please check CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in Vercel.');
+    } else if (pingError.http_code === 404) {
+      throw new Error('Invalid Cloudinary cloud name. Please check CLOUDINARY_CLOUD_NAME in Vercel.');
+    } else if (pingError.http_code === 500) {
+      throw new Error('Cloudinary API error (500). Your credentials may be invalid. Please verify all three credentials in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.');
+    } else {
+      throw new Error(`Cloudinary credential verification failed: ${pingError.message || 'Unknown error'}`);
+    }
+  }
+}
+
 export async function uploadImage(file: File | Blob, folder: string = 'robochamps-attendance'): Promise<string> {
   try {
     // Check environment variables first
@@ -42,8 +78,13 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     console.log('Cloudinary API key (first 4):', apiKey.substring(0, 4));
     console.log('Cloudinary API secret (length):', apiSecret.length);
     
-    // Configure Cloudinary
-    ensureCloudinaryConfig();
+    // Verify credentials before attempting upload
+    try {
+      await verifyCloudinaryCredentials();
+    } catch (verifyError: any) {
+      console.error('Cloudinary credential verification failed:', verifyError);
+      throw verifyError; // Re-throw with the verification error message
+    }
     
     // Read file as buffer
     let arrayBuffer: ArrayBuffer;
@@ -56,22 +97,35 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
     const buffer = Buffer.from(arrayBuffer);
     console.log('Cloudinary upload: File size:', buffer.length, 'bytes');
     
-    // Convert buffer to base64 data URI for direct upload
-    const base64String = buffer.toString('base64');
-    const dataUri = `data:image/jpeg;base64,${base64String}`;
+    // Try using buffer directly instead of data URI (more efficient)
+    console.log('Cloudinary upload: Attempting upload with buffer...');
     
-    console.log('Cloudinary upload: Attempting direct upload...');
-    
-    // Use direct upload method instead of stream (more reliable)
     try {
-      const result = await cloudinary.uploader.upload(dataUri, {
-        folder,
-        resource_type: 'image',
-        transformation: [
-          { quality: 'auto' },
-          { fetch_format: 'auto' },
-        ],
-        timeout: 30000, // 30 second timeout
+      // Use upload with buffer directly
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: 'image',
+            transformation: [
+              { quality: 'auto' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        
+        uploadStream.on('error', (streamError) => {
+          reject(streamError);
+        });
+        
+        uploadStream.end(buffer);
       });
       
       if (result?.secure_url) {
@@ -81,7 +135,7 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
         throw new Error('Upload failed: No URL returned from Cloudinary');
       }
     } catch (uploadError: any) {
-      console.error('Cloudinary direct upload error:', uploadError);
+      console.error('Cloudinary upload error:', uploadError);
       console.error('Cloudinary error details:', {
         http_code: uploadError.http_code,
         message: uploadError.message,
@@ -96,11 +150,11 @@ export async function uploadImage(file: File | Blob, folder: string = 'robochamp
       } else if (uploadError.http_code === 400) {
         errorMessage = `Cloudinary upload failed: ${uploadError.message || 'Invalid request'}`;
       } else if (uploadError.http_code === 500 || uploadError.message?.includes('Server return invalid JSON')) {
-        errorMessage = 'Cloudinary API error (500). Please verify your Cloudinary credentials are correct in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. The API is returning an error page, which usually means invalid credentials.';
+        errorMessage = 'Cloudinary API error (500). Your credentials may be invalid. Please verify all three credentials in Vercel: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. Make sure you copied the FULL API secret (usually 40+ characters) from Cloudinary dashboard.';
       } else if (uploadError.message) {
         // Check if error message contains HTML (indicates API error page)
         if (uploadError.message.includes('<!DOCTYPE') || uploadError.message.includes('Server return invalid JSON')) {
-          errorMessage = 'Cloudinary API error. Please verify your Cloudinary credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are correct in Vercel environment variables.';
+          errorMessage = 'Cloudinary API error. Please verify your Cloudinary credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are correct in Vercel environment variables. The API is returning an HTML error page, which usually means invalid credentials.';
         } else {
           errorMessage = `Cloudinary upload failed: ${uploadError.message}`;
         }
