@@ -11,7 +11,7 @@ interface School {
   _id: string;
   name: string;
   locationText: string;
-  schoolCode?: string;
+  schoolCode: string;
 }
 
 export default function SignupPage() {
@@ -93,6 +93,18 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validate school code if schools exist
+    if (schools.length > 0 && !formData.schoolCode) {
+      setError('School code is required');
+      return;
+    }
+    
+    if (schools.length > 0 && !formData.schoolId) {
+      setError('Please enter a valid school code');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -163,11 +175,12 @@ export default function SignupPage() {
 
             <div>
               <MinimalInput
-                label="School Code (Optional)"
+                label="School Code"
                 type="text"
                 placeholder="Enter school code (e.g., ABC001)"
                 value={formData.schoolCode}
                 onChange={(e) => handleSchoolCodeChange(e.target.value)}
+                required={schools.length > 0}
                 style={{ textTransform: 'uppercase' }}
               />
               {loadingSchoolCode && (
@@ -178,6 +191,9 @@ export default function SignupPage() {
               )}
               {formData.schoolId && !schoolCodeError && (
                 <p className="text-xs text-emerald-600 mt-1">✓ School found and auto-filled</p>
+              )}
+              {schools.length > 0 && !formData.schoolId && (
+                <p className="text-xs text-gray-500 mt-1">Enter your school code to auto-fill school details</p>
               )}
             </div>
 

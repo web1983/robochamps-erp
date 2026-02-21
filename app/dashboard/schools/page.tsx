@@ -8,7 +8,7 @@ interface School {
   _id: string;
   name: string;
   locationText: string;
-  schoolCode?: string;
+  schoolCode: string;
   createdAt: string;
 }
 
@@ -85,7 +85,7 @@ export default function SchoolsPage() {
     setFormData({
       name: school.name,
       locationText: school.locationText,
-      schoolCode: school.schoolCode || '',
+      schoolCode: school.schoolCode,
     });
     setShowAddForm(false);
     setError('');
@@ -194,17 +194,18 @@ export default function SchoolsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  School Code (Optional)
+                  School Code *
                 </label>
                 <input
                   type="text"
+                  required
                   value={formData.schoolCode}
                   onChange={(e) => setFormData({ ...formData, schoolCode: e.target.value.toUpperCase() })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   placeholder="e.g., ABC001"
                   style={{ textTransform: 'uppercase' }}
                 />
-                <p className="text-xs text-gray-500 mt-1">Unique code for easy school lookup during signup</p>
+                <p className="text-xs text-gray-500 mt-1">Unique code required for school lookup during signup</p>
               </div>
               <div className="flex space-x-4">
                 <button
@@ -264,7 +265,7 @@ export default function SchoolsPage() {
                       {school.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                      {school.schoolCode || <span className="text-gray-400">-</span>}
+                      {school.schoolCode}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {school.locationText}

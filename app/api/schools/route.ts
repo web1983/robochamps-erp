@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const schoolSchema = z.object({
   name: z.string().min(1, 'School name is required'),
   locationText: z.string().min(1, 'Location is required'),
-  schoolCode: z.string().optional(),
+  schoolCode: z.string().min(1, 'School code is required'),
 });
 
 export async function GET(request: NextRequest) {
@@ -52,18 +52,16 @@ export async function POST(request: NextRequest) {
 
     const schools = await getCollection<School>('schools');
     
-    // Check if school code already exists (if provided)
-    if (validated.schoolCode) {
-      const existingCode = await schools.findOne({
-        schoolCode: validated.schoolCode.toUpperCase().trim(),
-      });
+    // Check if school code already exists
+    const existingCode = await schools.findOne({
+      schoolCode: validated.schoolCode.toUpperCase().trim(),
+    });
 
-      if (existingCode) {
-        return NextResponse.json(
-          { error: 'School code already exists. Please use a different code.' },
-          { status: 400 }
-        );
-      }
+    if (existingCode) {
+      return NextResponse.json(
+        { error: 'School code already exists. Please use a different code.' },
+        { status: 400 }
+      );
     }
     
     // Check if school already exists
@@ -85,7 +83,7 @@ export async function POST(request: NextRequest) {
     const school: School = {
       name: validated.name,
       locationText: validated.locationText,
-      schoolCode: validated.schoolCode ? validated.schoolCode.toUpperCase().trim() : undefined,
+      schoolCode: validated.schoolCode.toUpperCase().trim(),
       createdByUserId: userId,
       createdAt: now,
       updatedAt: now,

@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const schoolSchema = z.object({
   name: z.string().min(1, 'School name is required'),
   locationText: z.string().min(1, 'Location is required'),
-  schoolCode: z.string().optional(),
+  schoolCode: z.string().min(1, 'School code is required'),
 });
 
 export async function PUT(
@@ -45,20 +45,18 @@ export async function PUT(
       );
     }
 
-    // Check if school code already exists (if provided and different from current)
-    if (validated.schoolCode) {
-      const codeToCheck = validated.schoolCode.toUpperCase().trim();
-      const existingCode = await schools.findOne({
-        schoolCode: codeToCheck,
-        _id: { $ne: schoolId as any },
-      });
+    // Check if school code already exists (different from current)
+    const codeToCheck = validated.schoolCode.toUpperCase().trim();
+    const existingCode = await schools.findOne({
+      schoolCode: codeToCheck,
+      _id: { $ne: schoolId as any },
+    });
 
-      if (existingCode) {
-        return NextResponse.json(
-          { error: 'School code already exists. Please use a different code.' },
-          { status: 400 }
-        );
-      }
+    if (existingCode) {
+      return NextResponse.json(
+        { error: 'School code already exists. Please use a different code.' },
+        { status: 400 }
+      );
     }
     
     // Check if another school with the same name and location exists
@@ -80,12 +78,9 @@ export async function PUT(
     const updateData: any = {
       name: validated.name,
       locationText: validated.locationText,
+      schoolCode: validated.schoolCode.toUpperCase().trim(),
       updatedAt: now,
     };
-    
-    if (validated.schoolCode !== undefined) {
-      updateData.schoolCode = validated.schoolCode ? validated.schoolCode.toUpperCase().trim() : null;
-    }
     
     const result = await schools.updateOne(
       { _id: schoolId as any },
