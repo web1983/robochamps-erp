@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default function NewReportPage() {
   const router = useRouter();
@@ -50,22 +50,22 @@ export default function NewReportPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      <DashboardHeader showBackButton backHref="/trainer/reports" role="TRAINER_SCHOOL" />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-white mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Create Daily Class Report
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md space-y-6 border border-white/20">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6 border border-gray-100">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Class Label
             </label>
             <input
@@ -73,12 +73,12 @@ export default function NewReportPage() {
               value={formData.classLabel}
               onChange={(e) => setFormData({ ...formData, classLabel: e.target.value })}
               placeholder="e.g., Grade 6-A"
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Date & Time *
             </label>
             <input
@@ -86,12 +86,12 @@ export default function NewReportPage() {
               required
               value={formData.datetime}
               onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Topics Taught *
             </label>
             <textarea
@@ -100,12 +100,12 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, topics: e.target.value })}
               placeholder="What topics did you teach today?"
               rows={4}
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Summary *
             </label>
             <textarea
@@ -114,12 +114,12 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
               placeholder="Brief summary of the class"
               rows={4}
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Additional Notes
             </label>
             <textarea
@@ -127,7 +127,7 @@ export default function NewReportPage() {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Any additional notes or remarks"
               rows={3}
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
@@ -135,14 +135,14 @@ export default function NewReportPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-emerald-500 text-white py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating...' : 'Create Report'}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 bg-white/10 border border-white/20 text-white py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors"
+              className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>

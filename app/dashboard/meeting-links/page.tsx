@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
+import DashboardHeader from '@/components/DashboardHeader';
 import { format } from 'date-fns';
 
 interface MeetingLink {
@@ -238,23 +238,23 @@ export default function MeetingLinksPage() {
   if (loading) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-        <Navbar />
+        <DashboardHeader />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-gray-500">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      <DashboardHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Meeting Links</h1>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
           >
             {showAddForm ? 'Cancel' : '+ Add Meeting Link'}
           </button>
@@ -267,7 +267,7 @@ export default function MeetingLinksPage() {
         )}
 
         {showAddForm && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+          <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Meeting Link</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -279,7 +279,7 @@ export default function MeetingLinksPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   placeholder="e.g., Weekly Training Meeting"
                 />
               </div>
@@ -292,7 +292,7 @@ export default function MeetingLinksPage() {
                   required
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   placeholder="https://meet.google.com/..."
                 />
               </div>
@@ -303,7 +303,7 @@ export default function MeetingLinksPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   rows={2}
                   placeholder="Optional description"
                 />
@@ -317,7 +317,7 @@ export default function MeetingLinksPage() {
                     type="date"
                     value={formData.scheduledDate}
                     onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -328,7 +328,7 @@ export default function MeetingLinksPage() {
                     type="time"
                     value={formData.scheduledTime}
                     onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function MeetingLinksPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
+                className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50"
               >
                 {submitting ? 'Creating...' : 'Create Link'}
               </button>
@@ -356,23 +356,23 @@ export default function MeetingLinksPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Links</h3>
-            <p className="text-3xl font-bold text-blue-600">{meetingLinks.length}</p>
+            <p className="text-3xl font-bold text-emerald-600">{meetingLinks.length}</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Links</h3>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-emerald-600">
               {meetingLinks.filter(link => link.isActive).length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Clicks</h3>
-            <p className="text-3xl font-bold text-purple-600">{totalClicks}</p>
+            <p className="text-3xl font-bold text-emerald-600">{totalClicks}</p>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Meeting Links</h2>
           {meetingLinks.length === 0 ? (
             <p className="text-gray-600">No meeting links created yet.</p>

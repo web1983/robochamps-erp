@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Navbar from '@/components/Navbar';
+import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -61,50 +61,42 @@ function TrainerAttendanceContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-        <Navbar />
+      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+        <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-white">Loading...</p>
+          <p className="text-gray-500">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">My Attendance Records</h1>
-            <p className="text-white/70">View all your marked attendance</p>
-          </div>
-          <Link
-            href="/trainer/dashboard"
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            ← Back to Dashboard
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Attendance Records</h1>
+          <p className="text-gray-500">View all your marked attendance</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">Start Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -114,7 +106,7 @@ function TrainerAttendanceContent() {
                 setStartDate('');
                 setEndDate('');
               }}
-              className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+              className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
             >
               Clear Filters
             </button>
@@ -122,17 +114,17 @@ function TrainerAttendanceContent() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 text-red-300 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
             {error}
           </div>
         )}
 
         {records.length === 0 ? (
-          <div className="bg-white/10 backdrop-blur-lg p-8 rounded-lg shadow-md text-center">
-            <p className="text-white/70">No attendance records found.</p>
+          <div className="bg-white p-8 rounded-lg shadow-md text-center border border-gray-100">
+            <p className="text-gray-500">No attendance records found.</p>
             <Link
               href="/trainer/attendance"
-              className="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+              className="mt-4 inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors"
             >
               Mark Attendance
             </Link>
@@ -140,26 +132,26 @@ function TrainerAttendanceContent() {
         ) : (
           <div className="space-y-4">
             {records.map((record) => (
-              <div key={record._id} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md">
+              <div key={record._id} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white mb-3">{record.classLabel}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{record.classLabel}</h3>
                     <div className="space-y-2 text-sm">
-                      <p className="text-white/80">
-                        <strong className="text-white">Date & Time:</strong>{' '}
+                      <p className="text-gray-600">
+                        <strong className="text-gray-900">Date & Time:</strong>{' '}
                         {format(new Date(record.datetime), 'PPP p')}
                       </p>
                       {record.schoolName && (
-                        <p className="text-white/80">
-                          <strong className="text-white">School:</strong> {record.schoolName}
+                        <p className="text-gray-600">
+                          <strong className="text-gray-900">School:</strong> {record.schoolName}
                         </p>
                       )}
                       {record.geo && (
-                        <p className="text-white/80">
-                          <strong className="text-white">📍 Location:</strong>{' '}
+                        <p className="text-gray-600">
+                          <strong className="text-gray-900">📍 Location:</strong>{' '}
                           {record.geo.lat.toFixed(6)}, {record.geo.lng.toFixed(6)}
                           {record.geo.accuracy && (
-                            <span className="text-white/60">
+                            <span className="text-gray-500">
                               {' '}
                               (Accuracy: {record.geo.accuracy.toFixed(2)}m)
                             </span>
@@ -172,7 +164,7 @@ function TrainerAttendanceContent() {
                     <img
                       src={record.photoUrl}
                       alt="Attendance photo"
-                      className="w-32 h-32 object-cover rounded-lg border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer"
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200 hover:border-emerald-500 transition-colors cursor-pointer"
                       onClick={() => window.open(record.photoUrl, '_blank')}
                       title="Click to view full size"
                     />

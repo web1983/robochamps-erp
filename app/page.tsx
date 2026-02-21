@@ -25,32 +25,34 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#1b1d1e' }}>
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-12 border border-white/10">
-        <div className="flex justify-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="w-full max-w-sm space-y-12">
+        <div className="text-center space-y-6">
           <img
             src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
             alt="Robochamps Logo"
-            className="h-24 w-auto object-contain"
+            className="h-16 mx-auto object-contain"
           />
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              ERP System
+            </h1>
+            <p className="text-gray-500">
+              Manage trainers, attendance, and reports efficiently
+            </p>
+          </div>
         </div>
-        <h1 className="text-4xl font-bold text-center mb-3 text-white">
-          ERP System
-        </h1>
-        <p className="text-center text-white/80 mb-10 text-lg">
-          Manage trainers, attendance, and reports efficiently
-        </p>
         
         <div className="space-y-4">
           <Link
             href="/signup"
-            className="block w-full bg-white text-gray-900 text-center py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 text-lg"
+            className="block w-full bg-emerald-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-all"
           >
             Sign Up
           </Link>
           <Link
             href="/login"
-            className="block w-full bg-white/10 border-2 border-white/30 text-white text-center py-4 rounded-xl font-semibold hover:bg-white/20 transition-all text-lg"
+            className="block w-full bg-transparent border-2 border-gray-200 text-gray-900 text-center py-3 rounded-lg font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-all"
           >
             Login
           </Link>

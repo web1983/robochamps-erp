@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import DashboardHeader from '@/components/DashboardHeader';
 import { format } from 'date-fns';
 
 interface School {
@@ -122,18 +122,18 @@ export default function SchoolsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-        <Navbar />
+      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+        <DashboardHeader />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-900">Loading...</p>
+          <p className="text-gray-500">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      <DashboardHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Schools</h1>
@@ -145,7 +145,7 @@ export default function SchoolsPage() {
                 setShowAddForm(!showAddForm);
               }
             }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
           >
             {showAddForm || editingSchool ? 'Cancel' : '+ Add School'}
           </button>
@@ -158,7 +158,7 @@ export default function SchoolsPage() {
         )}
 
         {(showAddForm || editingSchool) && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+          <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {editingSchool ? 'Edit School' : 'Add New School'}
             </h2>
@@ -172,7 +172,7 @@ export default function SchoolsPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   placeholder="e.g., ABC School"
                 />
               </div>
@@ -185,7 +185,7 @@ export default function SchoolsPage() {
                   required
                   value={formData.locationText}
                   onChange={(e) => setFormData({ ...formData, locationText: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   placeholder="e.g., New Delhi, India"
                 />
               </div>
@@ -193,7 +193,7 @@ export default function SchoolsPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting 
                     ? (editingSchool ? 'Updating...' : 'Creating...') 
@@ -215,13 +215,13 @@ export default function SchoolsPage() {
         )}
 
         {schools.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-md text-center">
+          <div className="bg-white p-8 rounded-lg shadow-md text-center border border-gray-100">
             <p className="text-gray-600">No schools found. Add your first school to get started.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     School Name

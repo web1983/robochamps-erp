@@ -43,8 +43,8 @@ export default function MeetingLinksSection() {
   if (loading) {
     return (
       <div className="mb-10">
-        <h2 className="text-3xl font-bold text-white mb-4">Meeting Links</h2>
-        <p className="text-white/70">Loading...</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Meeting Links</h2>
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function MeetingLinksSection() {
 
   return (
     <div className="mb-10">
-      <h2 className="text-3xl font-bold text-white mb-6">Meeting Links</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Meeting Links</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {meetingLinks.map((link) => (
           <MeetingLinkCard key={link._id} meetingLink={link} />

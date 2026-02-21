@@ -58,29 +58,29 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
   const isTodayMeeting = scheduledDateTime ? isToday(scheduledDateTime) : false;
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg p-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all border border-white/10 hover:border-white/30">
+    <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-emerald-500/50">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-3">
-            <h3 className="text-xl font-semibold text-white">{meetingLink.title}</h3>
+            <h3 className="text-xl font-semibold text-gray-900">{meetingLink.title}</h3>
             {scheduledDateTime && (
-              <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+              <span className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
                 isPast(scheduledDateTime) 
-                  ? 'bg-white/10 text-white/70' 
+                  ? 'bg-gray-50 text-gray-600 border-gray-200' 
                   : isTodayMeeting
-                  ? 'bg-green-500/30 text-green-300 border border-green-400/50'
-                  : 'bg-blue-500/30 text-blue-300 border border-blue-400/50'
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-blue-50 text-blue-700 border-blue-200'
               }`}>
                 {isPast(scheduledDateTime) ? 'Past' : isTodayMeeting ? 'Today' : 'Upcoming'}
               </span>
             )}
           </div>
           {meetingLink.description && (
-            <p className="text-white/70 text-sm mb-3">{meetingLink.description}</p>
+            <p className="text-gray-600 text-sm mb-3">{meetingLink.description}</p>
           )}
           {scheduledDateTime && (
-            <p className="text-sm text-white/80 mb-4">
-              📅 <strong>Scheduled:</strong> {format(scheduledDateTime, 'PP')}
+            <p className="text-sm text-gray-600 mb-4">
+              📅 <strong className="text-gray-900">Scheduled:</strong> {format(scheduledDateTime, 'PP')}
               {meetingLink.scheduledTime && ` at ${format(scheduledDateTime, 'p')}`}
             </p>
           )}
@@ -90,10 +90,10 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
       <button
         onClick={handleClick}
         disabled={clicking}
-        className={`w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl ${
+        className={`w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           isTodayMeeting 
-            ? 'bg-green-500 text-white hover:bg-green-600' 
-            : 'bg-white text-gray-900 hover:bg-gray-100'
+            ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+            : 'bg-emerald-500 text-white hover:bg-emerald-600'
         }`}
       >
         {clicking ? 'Opening...' : isTodayMeeting ? 'Join Meeting (Today)' : 'Join Meeting'}

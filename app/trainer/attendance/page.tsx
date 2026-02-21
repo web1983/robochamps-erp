@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default function MarkAttendancePage() {
   const router = useRouter();
@@ -120,22 +120,22 @@ export default function MarkAttendancePage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-white mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Mark Attendance
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md space-y-6 border border-white/20">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6 border border-gray-100">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Class Label *
             </label>
             <input
@@ -144,12 +144,12 @@ export default function MarkAttendancePage() {
               value={classLabel}
               onChange={(e) => setClassLabel(e.target.value)}
               placeholder="e.g., Grade 6-A, Robotics Class 1"
-              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-white/10 placeholder-white/50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Class Photo *
             </label>
             <input
@@ -163,7 +163,7 @@ export default function MarkAttendancePage() {
             <button
               type="button"
               onClick={capturePhoto}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              className="w-full px-4 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
             >
               📸 Take Photo
             </button>
@@ -174,7 +174,7 @@ export default function MarkAttendancePage() {
                   alt="Preview"
                   className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
                 />
-                <p className="text-sm text-white/80 mt-2 text-center">
+                <p className="text-sm text-gray-600 mt-2 text-center">
                   Photo captured: {photo?.name}
                 </p>
               </div>
@@ -182,40 +182,40 @@ export default function MarkAttendancePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Location (Optional)
             </label>
             <button
               type="button"
               onClick={getLocation}
-              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+              className="w-full px-4 py-3 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors font-semibold border border-gray-200"
             >
               📍 Get Location
             </button>
             {location && (
-              <div className="mt-4 p-3 bg-green-500/20 border border-green-400/50 rounded-lg">
-                <p className="text-sm text-green-300">
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700">
                   <strong>Latitude:</strong> {location.lat.toFixed(6)}
                 </p>
-                <p className="text-sm text-green-300">
+                <p className="text-sm text-green-700">
                   <strong>Longitude:</strong> {location.lng.toFixed(6)}
                 </p>
                 {location.accuracy && (
-                  <p className="text-sm text-green-300">
+                  <p className="text-sm text-green-700">
                     <strong>Accuracy:</strong> {location.accuracy.toFixed(2)} meters
                   </p>
                 )}
               </div>
             )}
             {locationError && (
-              <p className="mt-2 text-sm text-yellow-300">{locationError}</p>
+              <p className="mt-2 text-sm text-yellow-600">{locationError}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={loading || !photo || !classLabel}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-emerald-500 text-white py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Submitting...' : 'Mark Attendance'}
           </button>
