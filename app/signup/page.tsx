@@ -181,7 +181,7 @@ export default function SignupPage() {
                 value={formData.schoolCode}
                 onChange={(e) => handleSchoolCodeChange(e.target.value)}
                 required={schools.length > 0}
-                style={{ textTransform: 'uppercase' }}
+                style={{ textTransform: 'uppercase', color: '#111827' }}
               />
               {loadingSchoolCode && (
                 <p className="text-xs text-gray-500 mt-1">Looking up school...</p>
