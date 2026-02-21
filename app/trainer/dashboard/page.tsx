@@ -1,20 +1,65 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+'use client';
+
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import MeetingLinksSection from '@/components/MeetingLinksSection';
 
-export default async function TrainerDashboard() {
-  const session = await getServerSession(authOptions);
+function TrainerDashboardContent() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  if (!session) {
-    redirect('/login');
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
+
+    if (status === 'authenticated') {
+      const role = (session?.user as any)?.role;
+      if (role !== 'TRAINER_ROBOCHAMPS' && role !== 'TRAINER_SCHOOL') {
+        router.push('/dashboard');
+        return;
+      }
+
+      // Check for success message
+      const success = searchParams.get('success');
+      if (success) {
+        setSuccessMessage(decodeURIComponent(success));
+        setShowSuccess(true);
+        // Remove success param from URL
+        router.replace('/trainer/dashboard');
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 5000);
+      }
+    }
+  }, [status, session, router, searchParams]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  const role = (session.user as any).role;
+  if (status === 'unauthenticated' || !session) {
+    return null;
+  }
+
+  const role = (session.user as any)?.role;
   if (role !== 'TRAINER_ROBOCHAMPS' && role !== 'TRAINER_SCHOOL') {
-    redirect('/dashboard');
+    return null;
   }
 
   return (
@@ -24,6 +69,12 @@ export default async function TrainerDashboard() {
         <h1 className="text-3xl font-bold text-white mb-8">
           Trainer Dashboard
         </h1>
+
+        {showSuccess && (
+          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+            <p className="text-green-400 font-semibold">{successMessage}</p>
+          </div>
+        )}
 
         <MeetingLinksSection />
 
@@ -57,5 +108,22 @@ export default async function TrainerDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TrainerDashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
+          <Navbar />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <p className="text-white">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <TrainerDashboardContent />
+    </Suspense>
   );
 }
