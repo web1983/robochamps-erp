@@ -125,7 +125,35 @@ function TrainerDashboardContent() {
               />
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
+              {/* Navigation Links */}
+              <div className="hidden lg:flex items-center gap-4">
+                <Link
+                  href="/trainer/attendance"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                >
+                  Mark Attendance
+                </Link>
+                <Link
+                  href="/trainer/attendance/view"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                >
+                  View Attendance
+                </Link>
+                <Link
+                  href="/trainer/reports/new"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                >
+                  Create Report
+                </Link>
+                <Link
+                  href="/trainer/reports"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                >
+                  View Reports
+                </Link>
+              </div>
+
               <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">
@@ -138,10 +166,23 @@ function TrainerDashboardContent() {
                 </div>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  className="p-2 text-gray-600 hover:text-red-600 transition-colors border border-gray-200 rounded hover:border-red-300"
                   title="Sign out"
                 >
-                  <span className="text-lg">🚪</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>

@@ -27,6 +27,7 @@ export function MinimalSelect({
           ${error ? 'border-red-500' : ''}
           ${className}
         `}
+        style={{ color: '#111827' }}
         {...props}
       >
         {children}

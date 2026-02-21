@@ -26,6 +26,7 @@ export function MinimalInput({
           ${error ? 'border-red-500' : ''}
           ${className}
         `}
+        style={{ color: '#111827' }}
         {...props}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
