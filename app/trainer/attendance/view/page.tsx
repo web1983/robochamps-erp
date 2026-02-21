@@ -183,10 +183,10 @@ export default function TrainerAttendanceViewPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
-          <Navbar />
+        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+          <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <p className="text-white">Loading...</p>
+            <p className="text-gray-500">Loading...</p>
           </div>
         </div>
       }
