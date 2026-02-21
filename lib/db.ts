@@ -16,6 +16,7 @@ export interface School {
   _id?: string;
   name: string;
   locationText: string;
+  schoolCode?: string;
   createdByUserId?: string;
   createdAt: Date;
   updatedAt: Date;

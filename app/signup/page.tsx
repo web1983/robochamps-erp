@@ -11,6 +11,7 @@ interface School {
   _id: string;
   name: string;
   locationText: string;
+  schoolCode?: string;
 }
 
 export default function SignupPage() {
@@ -19,12 +20,15 @@ export default function SignupPage() {
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [formData, setFormData] = useState({
     fullName: '',
+    schoolCode: '',
     schoolId: '',
     location: '',
     trainerType: 'SCHOOL' as 'ROBOCHAMPS' | 'SCHOOL',
     email: '',
     password: '',
   });
+  const [schoolCodeError, setSchoolCodeError] = useState('');
+  const [loadingSchoolCode, setLoadingSchoolCode] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,16 +50,58 @@ export default function SignupPage() {
     }
   };
 
+  const handleSchoolCodeChange = async (code: string) => {
+    setFormData({ ...formData, schoolCode: code.toUpperCase() });
+    setSchoolCodeError('');
+    
+    if (!code || code.trim().length === 0) {
+      // Clear school selection if code is empty
+      setFormData(prev => ({ ...prev, schoolCode: '', schoolId: '', location: '' }));
+      return;
+    }
+
+    if (code.trim().length < 2) {
+      return; // Wait for more characters
+    }
+
+    setLoadingSchoolCode(true);
+    try {
+      const response = await fetch(`/api/schools/by-code?code=${encodeURIComponent(code.toUpperCase().trim())}`);
+      const data = await response.json();
+
+      if (response.ok && data.school) {
+        // Auto-fill school name and location
+        setFormData(prev => ({
+          ...prev,
+          schoolId: data.school._id,
+          location: data.school.locationText,
+          schoolCode: data.school.schoolCode,
+        }));
+        setSchoolCodeError('');
+      } else {
+        setSchoolCodeError('School not found with this code');
+        setFormData(prev => ({ ...prev, schoolId: '', location: '' }));
+      }
+    } catch (err) {
+      setSchoolCodeError('Failed to lookup school code');
+      setFormData(prev => ({ ...prev, schoolId: '', location: '' }));
+    } finally {
+      setLoadingSchoolCode(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      // Don't send schoolCode to API, only send schoolId
+      const { schoolCode, ...submitData } = formData;
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       const data = await response.json();
@@ -115,26 +161,47 @@ export default function SignupPage() {
               required
             />
 
+            <div>
+              <MinimalInput
+                label="School Code (Optional)"
+                type="text"
+                placeholder="Enter school code (e.g., ABC001)"
+                value={formData.schoolCode}
+                onChange={(e) => handleSchoolCodeChange(e.target.value)}
+                style={{ textTransform: 'uppercase' }}
+              />
+              {loadingSchoolCode && (
+                <p className="text-xs text-gray-500 mt-1">Looking up school...</p>
+              )}
+              {schoolCodeError && (
+                <p className="text-xs text-red-500 mt-1">{schoolCodeError}</p>
+              )}
+              {formData.schoolId && !schoolCodeError && (
+                <p className="text-xs text-emerald-600 mt-1">✓ School found and auto-filled</p>
+              )}
+            </div>
+
             <MinimalSelect
               label="School Name"
-              required={schools.length > 0}
+              required={schools.length > 0 && !formData.schoolId}
               value={formData.schoolId}
               onChange={(e) => {
                 const selectedSchool = schools.find(s => s._id === e.target.value);
                 setFormData({ 
                   ...formData, 
                   schoolId: e.target.value,
-                  location: selectedSchool?.locationText || ''
+                  location: selectedSchool?.locationText || '',
+                  schoolCode: selectedSchool?.schoolCode || ''
                 });
               }}
-              disabled={loadingSchools}
+              disabled={loadingSchools || (!!formData.schoolCode && formData.schoolCode.trim().length > 0)}
             >
               <option value="">
-                {loadingSchools ? 'Loading schools...' : schools.length === 0 ? 'No schools available (First user will be admin)' : 'Select a school'}
+                {loadingSchools ? 'Loading schools...' : schools.length === 0 ? 'No schools available (First user will be admin)' : formData.schoolId ? 'Auto-selected from code' : 'Or select a school manually'}
               </option>
               {schools.map((school) => (
                 <option key={school._id} value={school._id}>
-                  {school.name} - {school.locationText}
+                  {school.name} - {school.locationText} {school.schoolCode ? `(${school.schoolCode})` : ''}
                 </option>
               ))}
             </MinimalSelect>
@@ -147,10 +214,11 @@ export default function SignupPage() {
             <MinimalInput
               label="Location"
               type="text"
-              placeholder={schools.length === 0 ? "Optional for first user (admin)" : "Auto-filled from school selection"}
+              placeholder={schools.length === 0 ? "Optional for first user (admin)" : formData.schoolCode ? "Auto-filled from school code" : "Auto-filled from school selection"}
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               required={schools.length > 0}
+              disabled={!!formData.schoolCode && formData.schoolCode.trim().length > 0}
             />
 
             <MinimalSelect

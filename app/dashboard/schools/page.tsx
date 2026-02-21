@@ -8,6 +8,7 @@ interface School {
   _id: string;
   name: string;
   locationText: string;
+  schoolCode?: string;
   createdAt: string;
 }
 
@@ -21,6 +22,7 @@ export default function SchoolsPage() {
   const [formData, setFormData] = useState({
     name: '',
     locationText: '',
+    schoolCode: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -67,7 +69,7 @@ export default function SchoolsPage() {
       }
 
       // Reset form and refresh list
-      setFormData({ name: '', locationText: '' });
+      setFormData({ name: '', locationText: '', schoolCode: '' });
       setShowAddForm(false);
       setEditingSchool(null);
       fetchSchools();
@@ -83,6 +85,7 @@ export default function SchoolsPage() {
     setFormData({
       name: school.name,
       locationText: school.locationText,
+      schoolCode: school.schoolCode || '',
     });
     setShowAddForm(false);
     setError('');
@@ -116,7 +119,7 @@ export default function SchoolsPage() {
 
   const cancelEdit = () => {
     setEditingSchool(null);
-    setFormData({ name: '', locationText: '' });
+    setFormData({ name: '', locationText: '', schoolCode: '' });
     setError('');
   };
 
@@ -189,6 +192,20 @@ export default function SchoolsPage() {
                   placeholder="e.g., New Delhi, India"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  School Code (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.schoolCode}
+                  onChange={(e) => setFormData({ ...formData, schoolCode: e.target.value.toUpperCase() })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
+                  placeholder="e.g., ABC001"
+                  style={{ textTransform: 'uppercase' }}
+                />
+                <p className="text-xs text-gray-500 mt-1">Unique code for easy school lookup during signup</p>
+              </div>
               <div className="flex space-x-4">
                 <button
                   type="submit"
@@ -227,6 +244,9 @@ export default function SchoolsPage() {
                     School Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    School Code
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Location
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -242,6 +262,9 @@ export default function SchoolsPage() {
                   <tr key={school._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {school.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
+                      {school.schoolCode || <span className="text-gray-400">-</span>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {school.locationText}
