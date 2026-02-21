@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { MinimalInput } from '@/components/ui/MinimalInput';
+import { MinimalButton } from '@/components/ui/MinimalButton';
 
 function LoginForm() {
   const router = useRouter();
@@ -55,78 +57,76 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ backgroundColor: '#1b1d1e' }}>
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
-        <div className="flex justify-center mb-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white p-4">
+      <div className="w-full max-w-sm space-y-12">
+        {/* Header */}
+        <div className="text-center space-y-6">
           <img
             src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
             alt="Robochamps Logo"
-            className="h-20 w-auto object-contain"
+            className="h-12 mx-auto object-contain"
           />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Welcome back
+            </h1>
+            <p className="text-gray-500">Sign in to access your dashboard</p>
+          </div>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2 sm:mb-3 text-white">
-          Welcome Back
-        </h1>
-        <p className="text-center text-white/80 mb-6 sm:mb-8 lg:mb-10 text-base sm:text-lg">
-          Login to your ERP account
-        </p>
 
         {message && (
-          <div className="mb-6 p-4 bg-green-500/20 border border-green-400/50 text-green-300 rounded-xl">
+          <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
             {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-xl">
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Email Address *
-            </label>
-            <input
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-6">
+            <MinimalInput
+              label="Email Address"
               type="email"
-              required
+              placeholder="trainer@robochamps.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 sm:px-5 py-3 text-base bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all touch-manipulation"
-              placeholder="Enter your email"
+              required
+              error={error && error.includes('email') ? error : undefined}
+            />
+            <MinimalInput
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              error={error && error.includes('password') ? error : undefined}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Password *
-            </label>
-              <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 sm:px-5 py-3 text-base bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all touch-manipulation"
-              placeholder="Enter your password"
-              />
+          <div className="space-y-4">
+            <MinimalButton type="submit" fullWidth disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </MinimalButton>
+
+            <div className="text-center">
+              <span className="text-gray-500 text-sm">
+                Don't have an account?{' '}
+              </span>
+              <Link
+                href="/signup"
+                className="text-emerald-600 font-medium text-sm hover:text-emerald-700 transition-colors"
+              >
+                Sign up
+              </Link>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-gray-900 py-3 sm:py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base sm:text-lg touch-manipulation active:scale-95"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
         </form>
-
-        <p className="mt-6 sm:mt-8 text-center text-sm text-white/80">
-          Don't have an account?{' '}
-          <Link href="/signup" className="text-white font-semibold hover:underline">
-            Sign Up
-          </Link>
-        </p>
       </div>
     </div>
   );

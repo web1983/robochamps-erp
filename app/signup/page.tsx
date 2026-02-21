@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { MinimalInput } from '@/components/ui/MinimalInput';
+import { MinimalSelect } from '@/components/ui/MinimalSelect';
+import { MinimalButton } from '@/components/ui/MinimalButton';
 
 interface School {
   _id: string;
@@ -77,48 +80,43 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 flex items-start justify-center p-4 sm:p-6 overflow-y-auto" style={{ backgroundColor: '#1b1d1e' }}>
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10 my-auto">
-        <div className="flex justify-center mb-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white p-4 overflow-y-auto">
+      <div className="w-full max-w-sm space-y-12 py-8">
+        {/* Header */}
+        <div className="text-center space-y-6">
           <img
             src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
             alt="Robochamps Logo"
-            className="h-20 w-auto object-contain"
+            className="h-12 mx-auto object-contain"
           />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Create account
+            </h1>
+            <p className="text-gray-500">Join the trainer community</p>
+          </div>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2 sm:mb-3 text-white">
-          Create Account
-        </h1>
-        <p className="text-center text-white/80 mb-6 sm:mb-8 lg:mb-10 text-base sm:text-lg">
-          Join our ERP system
-        </p>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-300 rounded-xl">
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Full Name *
-            </label>
-            <input
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-6">
+            <MinimalInput
+              label="Full Name"
               type="text"
-              required
+              placeholder="John Doe"
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all"
-              placeholder="Enter your full name"
+              required
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              School Name *
-            </label>
-            <select
+            <MinimalSelect
+              label="School Name"
               required={schools.length > 0}
               value={formData.schoolId}
               onChange={(e) => {
@@ -130,102 +128,86 @@ export default function SignupPage() {
                 });
               }}
               disabled={loadingSchools}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white focus:outline-none transition-all"
             >
-              <option value="" className="bg-gray-900">{loadingSchools ? 'Loading schools...' : schools.length === 0 ? 'No schools available (First user will be admin)' : 'Select a school'}</option>
+              <option value="">
+                {loadingSchools ? 'Loading schools...' : schools.length === 0 ? 'No schools available (First user will be admin)' : 'Select a school'}
+              </option>
               {schools.map((school) => (
-                <option key={school._id} value={school._id} className="bg-gray-900">
+                <option key={school._id} value={school._id}>
                   {school.name} - {school.locationText}
                 </option>
               ))}
-            </select>
+            </MinimalSelect>
             {schools.length === 0 && !loadingSchools && (
-              <p className="text-xs text-white/60 mt-2">
+              <p className="text-xs text-gray-500 mt-1">
                 No schools available. The first user will become an admin and can add schools later.
               </p>
             )}
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Location *
-            </label>
-            <input
+            <MinimalInput
+              label="Location"
               type="text"
-              required={schools.length > 0}
+              placeholder={schools.length === 0 ? "Optional for first user (admin)" : "Auto-filled from school selection"}
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all"
-              placeholder={schools.length === 0 ? "Optional for first user (admin)" : "Auto-filled from school selection"}
+              required={schools.length > 0}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Trainer Type *
-            </label>
-            <select
+            <MinimalSelect
+              label="Trainer Type"
               required={schools.length > 0}
               value={formData.trainerType}
               onChange={(e) => setFormData({ ...formData, trainerType: e.target.value as 'ROBOCHAMPS' | 'SCHOOL' })}
               disabled={schools.length === 0}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="SCHOOL" className="bg-gray-900">School Trainer</option>
-              <option value="ROBOCHAMPS" className="bg-gray-900">Robochamps Trainer</option>
-            </select>
+              <option value="SCHOOL">School Trainer</option>
+              <option value="ROBOCHAMPS">Robochamps Trainer</option>
+            </MinimalSelect>
             {schools.length === 0 && (
-              <p className="text-xs text-white/60 mt-2">
+              <p className="text-xs text-gray-500 mt-1">
                 Trainer type not required for first user (admin)
               </p>
             )}
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Email Address *
-            </label>
-            <input
+            <MinimalInput
+              label="Email Address"
               type="email"
-              required
+              placeholder="trainer@robochamps.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all"
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">
-              Password *
-            </label>
-            <input
-              type="password"
               required
-              minLength={6}
+            />
+
+            <MinimalInput
+              label="Password"
+              type="password"
+              placeholder="••••••••"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-5 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/50 focus:outline-none transition-all"
-              placeholder="Enter your password"
+              required
+              minLength={6}
             />
-            <p className="text-xs text-white/60 mt-2">Minimum 6 characters</p>
+            <p className="text-xs text-gray-500 -mt-4">Minimum 6 characters</p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-gray-900 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
-          >
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
+          <div className="space-y-4">
+            <MinimalButton type="submit" fullWidth disabled={loading}>
+              {loading ? 'Creating account...' : 'Create Account'}
+            </MinimalButton>
 
-        <p className="mt-8 text-center text-sm text-white/80">
-          Already have an account?{' '}
-          <Link href="/login" className="text-white font-semibold hover:underline">
-            Login
-          </Link>
-        </p>
+            <div className="text-center">
+              <span className="text-gray-500 text-sm">
+                Already have an account?{' '}
+              </span>
+              <Link
+                href="/login"
+                className="text-emerald-600 font-medium text-sm hover:text-emerald-700 transition-colors"
+              >
+                Sign in
+              </Link>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
