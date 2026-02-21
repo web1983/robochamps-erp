@@ -78,7 +78,7 @@ function TrainerDashboardContent() {
 
         <MeetingLinksSection />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
             href="/trainer/attendance"
             className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-2 border-blue-500/50 hover:border-blue-500"
@@ -86,6 +86,15 @@ function TrainerDashboardContent() {
             <div className="text-4xl mb-4">📸</div>
             <h2 className="text-xl font-semibold mb-2 text-white">Mark Attendance</h2>
             <p className="text-white/80">Take a photo and mark your class attendance</p>
+          </Link>
+
+          <Link
+            href="/trainer/attendance/view"
+            className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-2 border-cyan-500/50 hover:border-cyan-500"
+          >
+            <div className="text-4xl mb-4">👁️</div>
+            <h2 className="text-xl font-semibold mb-2 text-white">View Attendance</h2>
+            <p className="text-white/80">See all your marked attendance records</p>
           </Link>
 
           <Link

@@ -1,0 +1,205 @@
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+import Link from 'next/link';
+import { format } from 'date-fns';
+
+interface AttendanceRecord {
+  _id: string;
+  schoolId: string;
+  trainerId: string;
+  classLabel: string;
+  datetime: string;
+  photoUrl: string;
+  trainerName?: string;
+  trainerEmail?: string;
+  schoolName?: string;
+  geo?: {
+    lat: number;
+    lng: number;
+    accuracy?: number;
+  };
+}
+
+function TrainerAttendanceContent() {
+  const searchParams = useSearchParams();
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [startDate, endDate]);
+
+  const fetchAttendance = async () => {
+    try {
+      setLoading(true);
+      let url = '/api/attendance';
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (params.toString()) url += '?' + params.toString();
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch attendance');
+      }
+
+      setRecords(data.records || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">My Attendance Records</h1>
+            <p className="text-white/70">View all your marked attendance</p>
+          </div>
+          <Link
+            href="/trainer/dashboard"
+            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            ← Back to Dashboard
+          </Link>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 text-red-300 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {records.length === 0 ? (
+          <div className="bg-white/10 backdrop-blur-lg p-8 rounded-lg shadow-md text-center">
+            <p className="text-white/70">No attendance records found.</p>
+            <Link
+              href="/trainer/attendance"
+              className="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Mark Attendance
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {records.map((record) => (
+              <div key={record._id} className="bg-white/10 backdrop-blur-lg p-6 rounded-lg shadow-md">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-white mb-3">{record.classLabel}</h3>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-white/80">
+                        <strong className="text-white">Date & Time:</strong>{' '}
+                        {format(new Date(record.datetime), 'PPP p')}
+                      </p>
+                      {record.schoolName && (
+                        <p className="text-white/80">
+                          <strong className="text-white">School:</strong> {record.schoolName}
+                        </p>
+                      )}
+                      {record.geo && (
+                        <p className="text-white/80">
+                          <strong className="text-white">📍 Location:</strong>{' '}
+                          {record.geo.lat.toFixed(6)}, {record.geo.lng.toFixed(6)}
+                          {record.geo.accuracy && (
+                            <span className="text-white/60">
+                              {' '}
+                              (Accuracy: {record.geo.accuracy.toFixed(2)}m)
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <img
+                      src={record.photoUrl}
+                      alt="Attendance photo"
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer"
+                      onClick={() => window.open(record.photoUrl, '_blank')}
+                      title="Click to view full size"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function TrainerAttendanceViewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen" style={{ backgroundColor: '#1b1d1e' }}>
+          <Navbar />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <p className="text-white">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <TrainerAttendanceContent />
+    </Suspense>
+  );
+}
