@@ -23,23 +23,34 @@ This guide will help you set up Supabase for storing uploaded combined sheets in
      - ⚠️ **KEEP THIS SECRET!** Never expose this in client-side code
      - Click the eye icon to reveal it if it's masked
 
-## Step 3: Create Storage Bucket
+## Step 3: Create Storage Bucket ⚠️ REQUIRED
 
-1. In your Supabase dashboard, go to **Storage**
-2. Click **New bucket**
-3. Name it: `combined-sheets`
-4. Set it to **Public bucket** (so files can be accessed via URL)
+**This step is CRITICAL - the upload feature will not work without this bucket!**
+
+1. In your Supabase dashboard, go to **Storage** (left sidebar)
+2. Click **New bucket** button (top right)
+3. **Bucket name**: `combined-sheets` (must be exactly this name)
+4. **Public bucket**: Toggle this to **ON** (so files can be accessed via URL)
+   - This allows users to view/download their uploaded files
 5. Click **Create bucket**
 
-## Step 4: Set Up Storage Policies
+**Important**: The bucket name must be exactly `combined-sheets` (lowercase, with hyphen). The code expects this exact name.
 
-1. Go to **Storage** → **Policies** for the `combined-sheets` bucket
+**If you see the error "Storage bucket 'combined-sheets' not found"**, it means this bucket hasn't been created yet. Follow the steps above to create it.
+
+## Step 4: Set Up Storage Policies (Optional - Service Role Key Bypasses RLS)
+
+**Note**: Since we're using the `SUPABASE_SERVICE_ROLE_KEY` for uploads (server-side), it bypasses Row Level Security (RLS) policies. However, if you want to add policies for additional security:
+
+1. Go to **Storage** → Click on `combined-sheets` bucket → **Policies** tab
 2. Click **New Policy**
-3. Create a policy that allows:
+3. Create policies that allow:
    - **INSERT**: Authenticated users can upload files
    - **SELECT**: Authenticated users can read files
    - **UPDATE**: Users can only update their own files (optional)
    - **DELETE**: Users can only delete their own files (optional)
+
+**For most use cases, you can skip this step** since the service role key handles uploads securely.
 
 Example policy for INSERT:
 ```sql
