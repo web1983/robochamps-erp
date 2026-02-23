@@ -115,10 +115,20 @@ function TrainerCombinedSheetContent() {
         body: formData,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        const text = await response.text();
+        throw new Error(`Server error (${response.status}): ${text.substring(0, 200)}`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to upload sheet');
+        const errorMsg = data.error || `Failed to upload sheet (${response.status})`;
+        if (data.details) {
+          console.error('Upload error details:', data.details);
+        }
+        throw new Error(errorMsg);
       }
 
       setUploadSuccess(true);

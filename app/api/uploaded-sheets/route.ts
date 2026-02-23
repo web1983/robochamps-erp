@@ -113,9 +113,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      console.error('Supabase URL not configured');
       return NextResponse.json(
-        { error: 'File storage is not configured. Please contact administrator.' },
+        { error: 'File storage is not configured. NEXT_PUBLIC_SUPABASE_URL is missing.' },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SECRET_KEY) {
+      console.error('Supabase service role key not configured');
+      return NextResponse.json(
+        { error: 'File storage is not configured. SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is missing.' },
+        { status: 500 }
+      );
+    }
+
+    if (!supabaseAdmin) {
+      console.error('Supabase admin client not initialized');
+      return NextResponse.json(
+        { error: 'File storage is not configured. Supabase admin client failed to initialize.' },
         { status: 500 }
       );
     }
@@ -129,6 +146,13 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    console.log('Attempting to upload to Supabase:', {
+      bucket: 'combined-sheets',
+      filePath,
+      fileSize: file.size,
+      fileType: file.type,
+    });
+
     // Upload to Supabase Storage using admin client (bypasses RLS)
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from('combined-sheets')
@@ -138,9 +162,31 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
+      console.error('Supabase upload error details:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError.error,
+        name: uploadError.name,
+      });
+      
+      // Provide more helpful error messages
+      let errorMessage = `Failed to upload file: ${uploadError.message}`;
+      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('The resource was not found')) {
+        errorMessage = 'Storage bucket "combined-sheets" not found. Please create it in Supabase dashboard.';
+      } else if (uploadError.message?.includes('new row violates row-level security')) {
+        errorMessage = 'Storage bucket access denied. Please check Supabase storage policies.';
+      }
+      
       return NextResponse.json(
-        { error: `Failed to upload file: ${uploadError.message}` },
+        { error: errorMessage },
+        { status: 500 }
+      );
+    }
+
+    if (!uploadData) {
+      console.error('Upload succeeded but no data returned');
+      return NextResponse.json(
+        { error: 'Upload succeeded but no data returned from storage' },
         { status: 500 }
       );
     }
@@ -191,10 +237,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Upload sheet error:', error);
+    console.error('Upload sheet error - Full details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error,
+    });
+    
     const errorMessage = error instanceof Error ? error.message : 'Failed to upload sheet';
     return NextResponse.json(
-      { error: errorMessage },
+      { 
+        error: errorMessage,
+        // Include more details in development
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error instanceof Error ? error.stack : String(error)
+        })
+      },
       { status: 500 }
     );
   }
