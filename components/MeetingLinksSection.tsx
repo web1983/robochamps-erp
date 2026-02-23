@@ -8,6 +8,7 @@ interface MeetingLink {
   title: string;
   url: string;
   description?: string;
+  pptDriveLink?: string;
   isActive: boolean;
   clickCount: number;
   scheduledDate?: string;

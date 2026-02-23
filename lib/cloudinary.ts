@@ -8,6 +8,7 @@ function ensureCloudinaryConfig() {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   
   // Always reconfigure to ensure we have the latest env vars
+  
   if (cloudName && apiKey && apiSecret) {
     cloudinary.config({
       cloud_name: cloudName,

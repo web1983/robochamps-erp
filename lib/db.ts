@@ -56,6 +56,7 @@ export interface MeetingLink {
   title: string;
   url: string;
   description?: string;
+  pptDriveLink?: string;
   createdBy: string;
   isActive: boolean;
   clickCount: number;

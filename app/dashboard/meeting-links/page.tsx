@@ -10,6 +10,7 @@ interface MeetingLink {
   title: string;
   url: string;
   description?: string;
+  pptDriveLink?: string;
   isActive: boolean;
   clickCount: number;
   scheduledDate?: string;
@@ -38,6 +39,7 @@ export default function MeetingLinksPage() {
     title: '',
     url: '',
     description: '',
+    pptDriveLink: '',
     isActive: true,
     scheduledDate: '',
     scheduledTime: '',
@@ -143,7 +145,7 @@ export default function MeetingLinksPage() {
         throw new Error(data.error || 'Failed to create meeting link');
       }
 
-      setFormData({ title: '', url: '', description: '', isActive: true, scheduledDate: '', scheduledTime: '' });
+      setFormData({ title: '', url: '', description: '', pptDriveLink: '', isActive: true, scheduledDate: '', scheduledTime: '' });
       setShowAddForm(false);
       fetchStats();
     } catch (err: any) {
@@ -308,6 +310,19 @@ export default function MeetingLinksPage() {
                   placeholder="Optional description"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  PPT Drive Link
+                </label>
+                <input
+                  type="url"
+                  value={formData.pptDriveLink}
+                  onChange={(e) => setFormData({ ...formData, pptDriveLink: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
+                  placeholder="https://drive.google.com/..."
+                />
+                <p className="mt-1 text-xs text-gray-500">Optional: Google Drive link to the meeting PPT/presentation</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -393,6 +408,11 @@ export default function MeetingLinksPage() {
                       <p className="text-sm text-gray-600 mb-2">{link.url}</p>
                       {link.description && (
                         <p className="text-sm text-gray-700 mb-2">{link.description}</p>
+                      )}
+                      {link.pptDriveLink && (
+                        <p className="text-sm text-gray-700 mb-2">
+                          📄 <a href={link.pptDriveLink} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">PPT Drive Link</a>
+                        </p>
                       )}
                       {link.scheduledDate && (() => {
                         const scheduledDateTime = link.scheduledTime 

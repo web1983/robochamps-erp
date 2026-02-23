@@ -8,6 +8,7 @@ interface MeetingLink {
   title: string;
   url: string;
   description?: string;
+  pptDriveLink?: string;
   scheduledDate?: string;
   scheduledTime?: string;
 }
@@ -87,17 +88,27 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
         </div>
         <div className="text-3xl ml-4">🔗</div>
       </div>
-      <button
-        onClick={handleClick}
-        disabled={clicking}
-        className={`w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-          isTodayMeeting 
-            ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-            : 'bg-emerald-500 text-white hover:bg-emerald-600'
-        }`}
-      >
-        {clicking ? 'Opening...' : isTodayMeeting ? 'Join Meeting (Today)' : 'Join Meeting'}
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={handleClick}
+          disabled={clicking}
+          className={`w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            isTodayMeeting 
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+              : 'bg-emerald-500 text-white hover:bg-emerald-600'
+          }`}
+        >
+          {clicking ? 'Opening...' : isTodayMeeting ? 'Join Meeting (Today)' : 'Join Meeting'}
+        </button>
+        {meetingLink.pptDriveLink && (
+          <button
+            onClick={() => window.open(meetingLink.pptDriveLink, '_blank')}
+            className="w-full py-3 rounded-lg font-semibold transition-colors bg-blue-500 text-white hover:bg-blue-600 border border-transparent"
+          >
+            📄 View PPT / Presentation
+          </button>
+        )}
+      </div>
     </div>
   );
 }

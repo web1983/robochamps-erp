@@ -32,6 +32,9 @@ export async function PUT(
     if (body.title) updateData.title = body.title;
     if (body.url) updateData.url = body.url;
     if (body.description !== undefined) updateData.description = body.description;
+    if (body.pptDriveLink !== undefined) {
+      updateData.pptDriveLink = body.pptDriveLink && body.pptDriveLink.trim() !== '' ? body.pptDriveLink : null;
+    }
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
     if (body.scheduledDate !== undefined) {
       updateData.scheduledDate = body.scheduledDate ? new Date(body.scheduledDate) : null;
