@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { format, isPast, isToday } from 'date-fns';
+import { useState, useEffect } from 'react';
+import { format, isPast, isToday, differenceInMinutes } from 'date-fns';
 
 interface MeetingLink {
   _id: string;
@@ -11,6 +11,7 @@ interface MeetingLink {
   pptDriveLink?: string;
   scheduledDate?: string;
   scheduledTime?: string;
+  isActive?: boolean;
 }
 
 interface MeetingLinkCardProps {
@@ -19,6 +20,16 @@ interface MeetingLinkCardProps {
 
 export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
   const [clicking, setClicking] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute to check if meeting is accessible
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClick = async () => {
     setClicking(true);
@@ -58,6 +69,52 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
   const isUpcoming = scheduledDateTime ? !isPast(scheduledDateTime) : false;
   const isTodayMeeting = scheduledDateTime ? isToday(scheduledDateTime) : false;
 
+  // Check if meeting link is clickable (5 minutes before scheduled time or later)
+  // Only applies if meeting is scheduled AND link is active
+  const isMeetingClickable = () => {
+    // If link is not active, disable clicking
+    if (meetingLink.isActive === false) {
+      return false;
+    }
+
+    // If no scheduled time, allow clicking (backward compatible)
+    if (!scheduledDateTime || !meetingLink.scheduledTime) {
+      return true;
+    }
+
+    // If meeting is scheduled and link is active, check time restriction
+    // Calculate 5 minutes before scheduled time
+    const fiveMinutesBefore = new Date(scheduledDateTime.getTime() - 5 * 60 * 1000);
+    
+    // Allow clicking if current time is >= 5 minutes before scheduled time
+    return currentTime >= fiveMinutesBefore;
+  };
+
+  const canClickMeeting = isMeetingClickable();
+  
+  // Calculate time until meeting becomes accessible
+  const getTimeUntilAccessible = () => {
+    if (!scheduledDateTime || !meetingLink.scheduledTime) return null;
+    
+    const fiveMinutesBefore = new Date(scheduledDateTime.getTime() - 5 * 60 * 1000);
+    const minutesUntil = differenceInMinutes(fiveMinutesBefore, currentTime);
+    
+    if (minutesUntil <= 0) return null;
+    
+    if (minutesUntil < 60) {
+      return `${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''}`;
+    }
+    
+    const hours = Math.floor(minutesUntil / 60);
+    const remainingMinutes = minutesUntil % 60;
+    if (remainingMinutes === 0) {
+      return `${hours} hour${hours !== 1 ? 's' : ''}`;
+    }
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+  };
+
+  const timeUntilAccessible = getTimeUntilAccessible();
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-emerald-500/50">
       <div className="flex items-start justify-between mb-4">
@@ -91,15 +148,29 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
       <div className="space-y-2">
         <button
           onClick={handleClick}
-          disabled={clicking}
+          disabled={clicking || !canClickMeeting}
           className={`w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-            isTodayMeeting 
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-              : 'bg-emerald-500 text-white hover:bg-emerald-600'
+            canClickMeeting
+              ? isTodayMeeting 
+                ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                : 'bg-emerald-500 text-white hover:bg-emerald-600'
+              : 'bg-gray-300 text-gray-600 cursor-not-allowed'
           }`}
+          title={!canClickMeeting && timeUntilAccessible ? `Meeting will be available in ${timeUntilAccessible}` : ''}
         >
-          {clicking ? 'Opening...' : isTodayMeeting ? 'Join Meeting (Today)' : 'Join Meeting'}
+          {clicking 
+            ? 'Opening...' 
+            : !canClickMeeting && timeUntilAccessible
+            ? `Join Meeting (Available in ${timeUntilAccessible})`
+            : isTodayMeeting 
+            ? 'Join Meeting (Today)' 
+            : 'Join Meeting'}
         </button>
+        {!canClickMeeting && timeUntilAccessible && (
+          <p className="text-xs text-gray-500 text-center">
+            Meeting link will be available 5 minutes before the scheduled time
+          </p>
+        )}
         {meetingLink.pptDriveLink && (
           <button
             onClick={() => window.open(meetingLink.pptDriveLink, '_blank')}
