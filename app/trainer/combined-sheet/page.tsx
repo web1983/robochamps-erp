@@ -33,16 +33,110 @@ interface CombinedRecord {
   }>;
 }
 
+interface UploadedSheet {
+  _id: string;
+  month: string;
+  year: number;
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  uploadedAt: string;
+}
+
 function TrainerCombinedSheetContent() {
   const [records, setRecords] = useState<CombinedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadedSheets, setUploadedSheets] = useState<UploadedSheet[]>([]);
+  const [uploadFormData, setUploadFormData] = useState({
+    file: null as File | null,
+    month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+  });
 
   useEffect(() => {
     fetchRecords();
+    fetchUploadedSheets();
   }, [startDate, endDate]);
+
+  const fetchUploadedSheets = async () => {
+    try {
+      const response = await fetch('/api/uploaded-sheets');
+      const data = await response.json();
+      if (response.ok) {
+        setUploadedSheets(data.sheets || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch uploaded sheets:', err);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFormData({ ...uploadFormData, file });
+      setUploadError('');
+    }
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploadError('');
+    setUploadSuccess(false);
+
+    if (!uploadFormData.file) {
+      setUploadError('Please select a file');
+      return;
+    }
+
+    if (!uploadFormData.month) {
+      setUploadError('Please select a month');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Extract year from month (YYYY-MM format)
+      const [year, month] = uploadFormData.month.split('-');
+      
+      const formData = new FormData();
+      formData.append('file', uploadFormData.file);
+      formData.append('month', uploadFormData.month);
+      formData.append('year', year);
+
+      const response = await fetch('/api/uploaded-sheets', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload sheet');
+      }
+
+      setUploadSuccess(true);
+      setUploadFormData({ 
+        file: null, 
+        month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+      });
+      setShowUploadForm(false);
+      fetchUploadedSheets();
+
+      // Reset success message after 5 seconds
+      setTimeout(() => setUploadSuccess(false), 5000);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload sheet');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchRecords = async () => {
     try {
@@ -158,6 +252,12 @@ function TrainerCombinedSheetContent() {
           </div>
           <div className="flex space-x-3">
             <button
+              onClick={() => setShowUploadForm(!showUploadForm)}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+            >
+              {showUploadForm ? 'Cancel Upload' : '📤 Upload Signed Sheet'}
+            </button>
+            <button
               onClick={generateCSV}
               disabled={records.length === 0}
               className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -173,6 +273,100 @@ function TrainerCombinedSheetContent() {
             </button>
           </div>
         </div>
+
+        {uploadSuccess && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+            ✅ Sheet uploaded successfully!
+          </div>
+        )}
+
+        {showUploadForm && (
+          <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Signed & Stamped Combined Sheet</h2>
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Month & Year *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <input
+                      type="month"
+                      required
+                      value={uploadFormData.month}
+                      onChange={(e) => setUploadFormData({ ...uploadFormData, month: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select the month and year for this combined sheet
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Upload File (PDF, Excel, or Image) *
+                </label>
+                <input
+                  type="file"
+                  required
+                  accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum file size: 10MB. Upload your signed and stamped combined sheet.
+                </p>
+              </div>
+              {uploadError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {uploadError}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={uploading}
+                className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? 'Uploading...' : 'Upload Sheet'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {uploadedSheets.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Uploaded Sheets</h2>
+            <div className="space-y-3">
+              {uploadedSheets.map((sheet) => (
+                <div
+                  key={sheet._id}
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {new Date(sheet.month + '-01').toLocaleDateString('en-US', {
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {sheet.fileName} • {format(new Date(sheet.uploadedAt), 'PPp')}
+                    </p>
+                  </div>
+                  <a
+                    href={sheet.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold text-sm"
+                  >
+                    View / Download
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-white p-4 rounded-lg shadow-md mb-6 border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

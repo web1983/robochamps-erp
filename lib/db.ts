@@ -76,6 +76,22 @@ export interface MeetingLinkClick {
   clickedAt: Date;
 }
 
+export interface UploadedCombinedSheet {
+  _id?: string;
+  trainerId: string;
+  trainerName: string;
+  trainerEmail: string;
+  schoolId: string;
+  schoolName: string;
+  month: string; // Format: "YYYY-MM" (e.g., "2024-01")
+  year: number;
+  fileUrl: string; // Supabase storage URL
+  fileName: string;
+  fileSize: number; // in bytes
+  uploadedAt: Date;
+  createdAt: Date;
+}
+
 export async function getDb() {
   try {
     const client = await clientPromise();
