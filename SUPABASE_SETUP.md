@@ -11,10 +11,17 @@ This guide will help you set up Supabase for storing uploaded combined sheets in
 ## Step 2: Get Your Supabase Credentials
 
 1. In your Supabase project dashboard, go to **Settings** → **API**
-2. Copy the following values:
-   - **Project URL** (this is your `NEXT_PUBLIC_SUPABASE_URL`)
-   - **anon/public key** (this is your `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
-   - **service_role key** (this is your `SUPABASE_SERVICE_ROLE_KEY` - keep this secret!)
+2. You'll see two tabs at the top:
+   - **"Publishable and secret API keys"** (new format)
+   - **"Legacy anon, service_role API keys"** ← **Click this tab**
+3. After clicking the "Legacy anon, service_role API keys" tab, you'll see:
+   - **Project URL** (at the top) - Copy this for `NEXT_PUBLIC_SUPABASE_URL`
+     - Example: `https://xxxxxxxxxxxxx.supabase.co`
+   - **anon public** key - Copy this for `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - This is the key that's safe to expose in the browser
+   - **service_role** key - Copy this for `SUPABASE_SERVICE_ROLE_KEY`
+     - ⚠️ **KEEP THIS SECRET!** Never expose this in client-side code
+     - Click the eye icon to reveal it if it's masked
 
 ## Step 3: Create Storage Bucket
 
