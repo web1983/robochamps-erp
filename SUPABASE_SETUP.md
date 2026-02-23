@@ -62,6 +62,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
+### Important Security Notes:
+
+- **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**: 
+  - ✅ **SAFE to expose** - This key is designed to be public and is safe to include in client-side code
+  - It's restricted by Row Level Security (RLS) policies in Supabase
+  - You may see a warning in Vercel about this - this is expected and safe
+  - Currently optional in our implementation (we use service role key for uploads)
+
+- **`SUPABASE_SERVICE_ROLE_KEY`**: 
+  - ⚠️ **MUST BE KEPT SECRET** - Never expose this in client-side code
+  - Only used in server-side API routes
+  - Has full access and bypasses RLS - treat it like a password
+  - This is what we use for secure file uploads
+
 ## Step 6: Alternative: Public Upload Policy
 
 If you want to simplify and allow all authenticated users to upload/read (since we're using NextAuth for authentication), you can use:
