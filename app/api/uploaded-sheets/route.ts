@@ -284,24 +284,53 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Optional filters
+    // Optional filters (only for admins)
     const { searchParams } = new URL(request.url);
     const trainerId = searchParams.get('trainerId');
     const schoolIdFilter = searchParams.get('schoolId');
+    const schoolNameFilter = searchParams.get('schoolName');
+    const trainerEmailFilter = searchParams.get('trainerEmail');
     const month = searchParams.get('month');
     const year = searchParams.get('year');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
-    if (trainerId && role === 'ADMIN') {
-      query.trainerId = trainerId;
+    if (role === 'ADMIN') {
+      if (trainerId) {
+        query.trainerId = trainerId;
+      }
+      if (schoolIdFilter) {
+        query.schoolId = schoolIdFilter;
+      }
+      if (schoolNameFilter) {
+        // Use regex for case-insensitive partial match
+        query.schoolName = { $regex: schoolNameFilter, $options: 'i' };
+      }
+      if (trainerEmailFilter) {
+        // Use regex for case-insensitive partial match
+        query.trainerEmail = { $regex: trainerEmailFilter, $options: 'i' };
+      }
     }
-    if (schoolIdFilter && role === 'ADMIN') {
-      query.schoolId = schoolIdFilter;
-    }
+    
     if (month) {
       query.month = month;
     }
     if (year) {
       query.year = parseInt(year);
+    }
+    
+    // Date range filter
+    if (startDate || endDate) {
+      query.uploadedAt = {};
+      if (startDate) {
+        query.uploadedAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Set to end of day
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.uploadedAt.$lte = end;
+      }
     }
 
     const sheets = await uploadedSheets

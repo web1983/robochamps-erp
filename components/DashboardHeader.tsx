@@ -100,6 +100,12 @@ export default function DashboardHeader({
               >
                 Meeting Links
               </Link>
+              <Link
+                href="/dashboard/uploaded-sheets"
+                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+              >
+                Uploaded Sheets
+              </Link>
             </>
           )}
           {userRole === 'TEACHER' && (

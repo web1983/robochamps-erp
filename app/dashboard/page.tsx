@@ -111,6 +111,13 @@ function DashboardContent() {
         action: 'Manage Links',
         href: '/dashboard/meeting-links',
       },
+      {
+        title: 'Uploaded Sheets',
+        description: 'View and filter uploaded signed combined sheets.',
+        icon: '📄',
+        action: 'View Sheets',
+        href: '/dashboard/uploaded-sheets',
+      },
     ] : []),
   ];
 
