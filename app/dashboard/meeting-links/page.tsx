@@ -196,16 +196,18 @@ export default function MeetingLinksPage() {
   const downloadCSV = () => {
     const clicksToDownload = filteredClicks.length > 0 ? filteredClicks : recentClicks;
     
-    // Get meeting link titles
+    // Get meeting link titles and PPT drive links
     const linkMap = new Map(meetingLinks.map(link => [link._id, link.title]));
+    const pptDriveLinkMap = new Map(meetingLinks.map(link => [link._id, link.pptDriveLink || 'N/A']));
     
     // CSV header
-    const headers = ['Name', 'Email', 'School Name', 'Meeting Link', 'Clicked At'];
+    const headers = ['Name', 'Email', 'School Name', 'Meeting Link', 'PPT Drive Link', 'Clicked At'];
     const rows = clicksToDownload.map(click => [
       click.userName,
       click.userEmail,
       click.schoolName || 'N/A',
       linkMap.get(click.meetingLinkId) || 'Unknown',
+      pptDriveLinkMap.get(click.meetingLinkId) || 'N/A',
       format(new Date(click.clickedAt), 'yyyy-MM-dd HH:mm:ss'),
     ]);
 
