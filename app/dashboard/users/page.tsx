@@ -32,7 +32,12 @@ export default function UsersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [changingPasswordUserId, setChangingPasswordUserId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [editFormData, setEditFormData] = useState({
+    role: 'TRAINER_SCHOOL' as 'ADMIN' | 'TEACHER' | 'TRAINER_ROBOCHAMPS' | 'TRAINER_SCHOOL',
+    schoolId: '',
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -171,6 +176,58 @@ export default function UsersPage() {
 
       setChangingPasswordUserId(null);
       setNewPassword('');
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUserId(user._id);
+    setEditFormData({
+      role: user.role as any,
+      schoolId: user.schoolId || '',
+    });
+    setError('');
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUserId) return;
+
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const payload: any = {
+        role: editFormData.role,
+      };
+
+      // Only include schoolId if it's a trainer role
+      if (editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') {
+        payload.schoolId = editFormData.schoolId || null;
+      } else {
+        payload.schoolId = null;
+      }
+
+      const response = await fetch(`/api/users/${editingUserId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user');
+      }
+
+      setEditingUserId(null);
+      setEditFormData({
+        role: 'TRAINER_SCHOOL',
+        schoolId: '',
+      });
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
@@ -403,6 +460,13 @@ export default function UsersPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
                             <button
+                              onClick={() => handleEdit(user)}
+                              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-all"
+                              disabled={submitting}
+                            >
+                              Edit
+                            </button>
+                            <button
                               onClick={() => setChangingPasswordUserId(user._id)}
                               className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-all"
                               disabled={submitting}
@@ -450,6 +514,13 @@ export default function UsersPage() {
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-200">
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="flex-1 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold border border-blue-200 transition-all"
+                        disabled={submitting}
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => setChangingPasswordUserId(user._id)}
                         className="flex-1 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-sm font-semibold border border-emerald-200 transition-all"
@@ -499,6 +570,84 @@ export default function UsersPage() {
                 <button
                   onClick={() => {
                     setDeletingUserId(null);
+                    setError('');
+                  }}
+                  disabled={submitting}
+                  className="flex-1 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit User Modal */}
+        {editingUserId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl border border-gray-200 max-w-md w-full p-6 sm:p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Edit User</h3>
+              <p className="text-gray-600 mb-6">
+                Update role and school for <strong className="text-gray-900">{users.find(u => u._id === editingUserId)?.name}</strong>
+              </p>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role *
+                  </label>
+                  <select
+                    required
+                    value={editFormData.role}
+                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as any, schoolId: '' })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="TEACHER">Teacher</option>
+                    <option value="TRAINER_ROBOCHAMPS">Robochamps Trainer</option>
+                    <option value="TRAINER_SCHOOL">School Trainer</option>
+                  </select>
+                </div>
+                {(editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      School *
+                    </label>
+                    <select
+                      required
+                      value={editFormData.schoolId}
+                      onChange={(e) => setEditFormData({ ...editFormData, schoolId: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
+                    >
+                      <option value="">Select a school</option>
+                      {schools.map((school) => (
+                        <option key={school._id} value={school._id}>
+                          {school.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleUpdateUser}
+                  disabled={submitting || (editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') && !editFormData.schoolId}
+                  className="flex-1 bg-emerald-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? 'Updating...' : 'Update User'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingUserId(null);
+                    setEditFormData({
+                      role: 'TRAINER_SCHOOL',
+                      schoolId: '',
+                    });
                     setError('');
                   }}
                   disabled={submitting}

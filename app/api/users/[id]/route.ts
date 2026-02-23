@@ -11,6 +11,12 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+const updateUserSchema = z.object({
+  role: z.enum(['ADMIN', 'TEACHER', 'TRAINER_ROBOCHAMPS', 'TRAINER_SCHOOL']).optional(),
+  schoolId: z.string().optional().nullable(),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters').optional(),
+});
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -83,16 +89,61 @@ export async function PUT(
     }
 
     const role = (session.user as any).role;
-    // Only admins can change passwords
+    // Only admins can update users
     if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Only admins can change user passwords' }, { status: 403 });
+      return NextResponse.json({ error: 'Only admins can update users' }, { status: 403 });
     }
 
     const body = await request.json();
-    const validated = changePasswordSchema.parse(body);
+    
+    // Check if this is a password-only update (backward compatibility)
+    if (body.newPassword && !body.role && body.schoolId === undefined) {
+      const validated = changePasswordSchema.parse(body);
+      const { ObjectId } = await import('mongodb');
+      const users = await getCollection<User>('users');
+      
+      const targetUserId = new ObjectId(params.id);
+      
+      // Check if user exists
+      const user = await users.findOne({ _id: targetUserId as any });
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
 
+      // Hash new password
+      const passwordHash = await hashPassword(validated.newPassword);
+
+      const result = await users.updateOne(
+        { _id: targetUserId as any },
+        {
+          $set: {
+            passwordHash,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      if (result.matchedCount === 0) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Password changed successfully',
+      });
+    }
+
+    // Full user update (role, school, optional password)
+    const validated = updateUserSchema.parse(body);
     const { ObjectId } = await import('mongodb');
     const users = await getCollection<User>('users');
+    const { getCollection: getSchoolCollection, School } = await import('@/lib/db');
     
     const targetUserId = new ObjectId(params.id);
     
@@ -105,17 +156,53 @@ export async function PUT(
       );
     }
 
-    // Hash new password
-    const passwordHash = await hashPassword(validated.newPassword);
+    // Validate school if provided
+    let schoolId: string | undefined | null = validated.schoolId;
+    if (schoolId !== undefined && schoolId !== null && schoolId !== '') {
+      const schools = await getSchoolCollection<School>('schools');
+      const school = await schools.findOne({
+        _id: new ObjectId(schoolId) as any,
+      });
+
+      if (!school) {
+        return NextResponse.json(
+          { error: 'School not found' },
+          { status: 400 }
+        );
+      }
+      schoolId = school._id?.toString() || schoolId;
+    } else if (schoolId === '') {
+      schoolId = null;
+    }
+
+    // Build update object
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (validated.role) {
+      updateData.role = validated.role;
+      // Update trainerType based on role
+      if (validated.role === 'TRAINER_ROBOCHAMPS') {
+        updateData.trainerType = 'ROBOCHAMPS';
+      } else if (validated.role === 'TRAINER_SCHOOL') {
+        updateData.trainerType = 'SCHOOL';
+      } else {
+        updateData.trainerType = null;
+      }
+    }
+
+    if (schoolId !== undefined) {
+      updateData.schoolId = schoolId || null;
+    }
+
+    if (validated.newPassword) {
+      updateData.passwordHash = await hashPassword(validated.newPassword);
+    }
 
     const result = await users.updateOne(
       { _id: targetUserId as any },
-      {
-        $set: {
-          passwordHash,
-          updatedAt: new Date(),
-        },
-      }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
@@ -127,7 +214,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: 'Password changed successfully',
+      message: 'User updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -137,9 +224,9 @@ export async function PUT(
       );
     }
 
-    console.error('Change password error:', error);
+    console.error('Update user error:', error);
     return NextResponse.json(
-      { error: 'Failed to change password' },
+      { error: error instanceof Error ? error.message : 'Failed to update user' },
       { status: 500 }
     );
   }
