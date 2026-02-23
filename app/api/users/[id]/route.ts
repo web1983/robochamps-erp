@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { getCollection, User } from '@/lib/db';
+import { getCollection, User, School } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -143,7 +143,6 @@ export async function PUT(
     const validated = updateUserSchema.parse(body);
     const { ObjectId } = await import('mongodb');
     const users = await getCollection<User>('users');
-    const { getCollection: getSchoolCollection, School } = await import('@/lib/db');
     
     const targetUserId = new ObjectId(params.id);
     
@@ -159,7 +158,7 @@ export async function PUT(
     // Validate school if provided
     let schoolId: string | undefined | null = validated.schoolId;
     if (schoolId !== undefined && schoolId !== null && schoolId !== '') {
-      const schools = await getSchoolCollection<School>('schools');
+      const schools = await getCollection<School>('schools');
       const school = await schools.findOne({
         _id: new ObjectId(schoolId) as any,
       });
