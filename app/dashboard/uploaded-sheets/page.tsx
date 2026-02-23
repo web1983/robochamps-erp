@@ -166,13 +166,18 @@ export default function UploadedSheetsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 School Name
               </label>
-              <input
-                type="text"
+              <select
                 value={filters.schoolName}
                 onChange={(e) => handleFilterChange('schoolName', e.target.value)}
-                placeholder="Search by school name..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
-              />
+              >
+                <option value="">All Schools</option>
+                {schools.map((school) => (
+                  <option key={school._id} value={school.name}>
+                    {school.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
