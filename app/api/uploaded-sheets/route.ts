@@ -40,26 +40,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get school name
-    const schools = await getCollection('schools');
-    const school = await schools.findOne({ _id: schoolId as any });
-    if (!school) {
-      return NextResponse.json({ error: 'School not found' }, { status: 400 });
-    }
-    const schoolName = school.name || 'Unknown School';
-
-    // Parse form data
+    // Parse form data first
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const month = formData.get('month') as string;
-    const year = parseInt(formData.get('year') as string);
+    const yearStr = formData.get('year') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 });
     }
 
+    if (!month) {
+      return NextResponse.json({ error: 'Month is required' }, { status: 400 });
+    }
+
+    if (!yearStr) {
+      return NextResponse.json({ error: 'Year is required' }, { status: 400 });
+    }
+
+    const year = parseInt(yearStr, 10);
+    if (isNaN(year)) {
+      return NextResponse.json({ error: 'Invalid year format' }, { status: 400 });
+    }
+
     // Validate month and year
-    const validated = uploadSchema.parse({ month, year });
+    let validated;
+    try {
+      validated = uploadSchema.parse({ month, year });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Validation error', details: error.errors },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+
+    // Get school name (convert schoolId string to ObjectId)
+    const { ObjectId } = await import('mongodb');
+    const schools = await getCollection('schools');
+    const schoolObjectId = new ObjectId(schoolId);
+    const school = await schools.findOne({ _id: schoolObjectId as any });
+    if (!school) {
+      return NextResponse.json({ error: 'School not found' }, { status: 400 });
+    }
+    const schoolName = school.name || 'Unknown School';
 
     // Validate file type (PDF, Excel, or Image)
     const allowedTypes = [
@@ -166,8 +192,9 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Upload sheet error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload sheet';
     return NextResponse.json(
-      { error: 'Failed to upload sheet' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
