@@ -165,7 +165,6 @@ export async function POST(request: NextRequest) {
       console.error('Supabase upload error details:', {
         message: uploadError.message,
         statusCode: uploadError.statusCode,
-        error: uploadError.error,
         name: uploadError.name,
       });
       
