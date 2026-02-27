@@ -92,6 +92,25 @@ export interface UploadedCombinedSheet {
   createdAt: Date;
 }
 
+export type LateUploadRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface LateUploadRequest {
+  _id?: string;
+  trainerId: string;
+  trainerName: string;
+  trainerEmail: string;
+  schoolId: string;
+  schoolName: string;
+  month: string; // Format: "YYYY-MM" (e.g., "2024-01")
+  year: number;
+  reason: string;
+  status: LateUploadRequestStatus;
+  createdAt: Date;
+  decidedAt?: Date;
+  decidedByAdminId?: string;
+  decidedByAdminName?: string;
+}
+
 export async function getDb() {
   try {
     const client = await clientPromise();

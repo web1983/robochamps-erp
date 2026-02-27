@@ -118,6 +118,13 @@ function DashboardContent() {
         action: 'View Sheets',
         href: '/dashboard/uploaded-sheets',
       },
+      {
+        title: 'Late Upload Requests',
+        description: 'Review and approve/reject late upload requests.',
+        icon: '⏰',
+        action: 'Manage Requests',
+        href: '/dashboard/late-upload-requests',
+      },
     ] : []),
   ];
 

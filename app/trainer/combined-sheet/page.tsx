@@ -43,6 +43,17 @@ interface UploadedSheet {
   uploadedAt: string;
 }
 
+interface LateUploadRequest {
+  _id: string;
+  month: string;
+  year: number;
+  reason: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
 function TrainerCombinedSheetContent() {
   const [records, setRecords] = useState<CombinedRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +65,12 @@ function TrainerCombinedSheetContent() {
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadedSheets, setUploadedSheets] = useState<UploadedSheet[]>([]);
+  const [lateUploadRequests, setLateUploadRequests] = useState<LateUploadRequest[]>([]);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestReason, setRequestReason] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [requestError, setRequestError] = useState('');
+  const [requestSuccess, setRequestSuccess] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     file: null as File | null,
     month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
@@ -62,6 +79,7 @@ function TrainerCombinedSheetContent() {
   useEffect(() => {
     fetchRecords();
     fetchUploadedSheets();
+    fetchLateUploadRequests();
   }, [startDate, endDate]);
 
   const fetchUploadedSheets = async () => {
@@ -73,6 +91,77 @@ function TrainerCombinedSheetContent() {
       }
     } catch (err) {
       console.error('Failed to fetch uploaded sheets:', err);
+    }
+  };
+
+  const fetchLateUploadRequests = async () => {
+    try {
+      const response = await fetch('/api/late-upload-requests');
+      const data = await response.json();
+      if (response.ok) {
+        setLateUploadRequests(data.requests || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch late upload requests:', err);
+    }
+  };
+
+  // Check if the deadline has passed for the selected month
+  const isDeadlinePassed = (monthYear: string): boolean => {
+    if (!monthYear) return false;
+    const [year, month] = monthYear.split('-').map(Number);
+    const deadlineDate = new Date(year, month, 5, 23, 59, 59); // 5th of the following month
+    const now = new Date();
+    return now > deadlineDate;
+  };
+
+  const handleSubmitRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRequestError('');
+    setRequestSuccess(false);
+
+    if (!requestReason.trim()) {
+      setRequestError('Please provide a reason for the late upload');
+      return;
+    }
+
+    if (!uploadFormData.month) {
+      setRequestError('Please select a month');
+      return;
+    }
+
+    setSubmittingRequest(true);
+
+    try {
+      const [year] = uploadFormData.month.split('-');
+      const response = await fetch('/api/late-upload-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          month: uploadFormData.month,
+          year: parseInt(year, 10),
+          reason: requestReason.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit request');
+      }
+
+      setRequestSuccess(true);
+      setRequestReason('');
+      setShowRequestForm(false);
+      fetchLateUploadRequests();
+
+      setTimeout(() => setRequestSuccess(false), 5000);
+    } catch (err: any) {
+      setRequestError(err.message || 'Failed to submit request');
+    } finally {
+      setSubmittingRequest(false);
     }
   };
 
@@ -138,6 +227,7 @@ function TrainerCombinedSheetContent() {
       });
       setShowUploadForm(false);
       fetchUploadedSheets();
+      fetchLateUploadRequests();
 
       // Reset success message after 5 seconds
       setTimeout(() => setUploadSuccess(false), 5000);
@@ -290,57 +380,183 @@ function TrainerCombinedSheetContent() {
           </div>
         )}
 
+        {requestSuccess && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+            ✅ Late upload request submitted successfully! Waiting for admin approval.
+          </div>
+        )}
+
         {showUploadForm && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Signed & Stamped Combined Sheet</h2>
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Month & Year *
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <input
-                      type="month"
-                      required
-                      value={uploadFormData.month}
-                      onChange={(e) => setUploadFormData({ ...uploadFormData, month: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
-                    />
+            
+            {/* Check if deadline has passed */}
+            {isDeadlinePassed(uploadFormData.month) ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg">
+                  <p className="font-semibold mb-2">⚠️ Upload Deadline Passed</p>
+                  <p className="text-sm">
+                    The deadline for uploading sheets for{' '}
+                    {new Date(uploadFormData.month + '-01').toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}{' '}
+                    has passed (deadline: 5th of the following month). Please submit a request for approval to upload this sheet.
+                  </p>
+                </div>
+
+                {!showRequestForm ? (
+                  <button
+                    onClick={() => setShowRequestForm(true)}
+                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                  >
+                    Request Approval for Late Upload
+                  </button>
+                ) : (
+                  <form onSubmit={handleSubmitRequest} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Reason for Late Upload *
+                      </label>
+                      <textarea
+                        required
+                        value={requestReason}
+                        onChange={(e) => setRequestReason(e.target.value)}
+                        placeholder="Please explain why you need to upload this sheet after the deadline..."
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Provide a detailed reason for the late upload request
+                      </p>
+                    </div>
+                    {requestError && (
+                      <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                        {requestError}
+                      </div>
+                    )}
+                    <div className="flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={submittingRequest}
+                        className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submittingRequest ? 'Submitting...' : 'Submit Request'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowRequestForm(false);
+                          setRequestReason('');
+                          setRequestError('');
+                        }}
+                        className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Month & Year *
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="month"
+                        required
+                        value={uploadFormData.month}
+                        onChange={(e) => setUploadFormData({ ...uploadFormData, month: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select the month and year for this combined sheet. Deadline: 5th of the following month.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload File (PDF, Excel, or Image) *
+                  </label>
+                  <input
+                    type="file"
+                    required
+                    accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
+                    onChange={handleFileChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum file size: 10MB. Upload your signed and stamped combined sheet.
+                  </p>
+                </div>
+                {uploadError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    {uploadError}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploading ? 'Uploading...' : 'Upload Sheet'}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Show pending/approved requests */}
+        {lateUploadRequests.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Late Upload Requests</h2>
+            <div className="space-y-3">
+              {lateUploadRequests.map((request) => (
+                <div
+                  key={request._id}
+                  className={`p-4 border rounded-lg ${
+                    request.status === 'APPROVED'
+                      ? 'bg-green-50 border-green-200'
+                      : request.status === 'REJECTED'
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-yellow-50 border-yellow-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(request.month + '-01').toLocaleDateString('en-US', {
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">{request.reason}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Requested: {format(new Date(request.requestedAt), 'PPp')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          request.status === 'APPROVED'
+                            ? 'bg-green-100 text-green-800'
+                            : request.status === 'REJECTED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {request.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Select the month and year for this combined sheet
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Upload File (PDF, Excel, or Image) *
-                </label>
-                <input
-                  type="file"
-                  required
-                  accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Maximum file size: 10MB. Upload your signed and stamped combined sheet.
-                </p>
-              </div>
-              {uploadError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-                  {uploadError}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={uploading}
-                className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploading ? 'Uploading...' : 'Upload Sheet'}
-              </button>
-            </form>
+              ))}
+            </div>
           </div>
         )}
 
