@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
 
     // Save metadata to MongoDB
     const uploadedSheets = await getCollection<UploadedCombinedSheet>('uploadedCombinedSheets');
-    const now = new Date();
+    const uploadedAt = new Date();
 
     const uploadedSheet: UploadedCombinedSheet = {
       trainerId: userId,
@@ -264,8 +264,8 @@ export async function POST(request: NextRequest) {
       fileUrl,
       fileName: file.name,
       fileSize: file.size,
-      uploadedAt: now,
-      createdAt: now,
+      uploadedAt: uploadedAt,
+      createdAt: uploadedAt,
     };
 
     const result = await uploadedSheets.insertOne(uploadedSheet);
