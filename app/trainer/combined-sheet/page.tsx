@@ -71,9 +71,20 @@ function TrainerCombinedSheetContent() {
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [requestError, setRequestError] = useState('');
   const [requestSuccess, setRequestSuccess] = useState(false);
+  // Auto-select previous month (e.g., if it's February, default to January)
+  const getDefaultMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-based (0 = January, 11 = December)
+    // Previous month: if current month is January (0), previous is December (11) of previous year
+    const prevMonth = month === 0 ? 11 : month - 1;
+    const prevYear = month === 0 ? year - 1 : year;
+    return `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
+  };
+
   const [uploadFormData, setUploadFormData] = useState({
     file: null as File | null,
-    month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+    month: getDefaultMonth(),
   });
 
   useEffect(() => {
@@ -223,7 +234,7 @@ function TrainerCombinedSheetContent() {
       setUploadSuccess(true);
       setUploadFormData({ 
         file: null, 
-        month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+        month: getDefaultMonth(),
       });
       setShowUploadForm(false);
       fetchUploadedSheets();
@@ -462,7 +473,7 @@ function TrainerCombinedSheetContent() {
               <form onSubmit={handleUpload} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Select Month & Year *
+                    Month & Year *
                   </label>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -476,7 +487,7 @@ function TrainerCombinedSheetContent() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Select the month and year for this combined sheet. Deadline: 5th of the following month.
+                    Auto-selected: Previous month's sheet. Deadline: 5th of current month.
                   </p>
                 </div>
                 <div>
