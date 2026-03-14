@@ -291,14 +291,16 @@ export async function GET(request: NextRequest) {
     const attendanceRecords = await getCollection<AttendanceRecord>('attendanceRecords');
     const users = await getCollection<User>('users');
     const schools = await getCollection<School>('schools');
+    const { ObjectId } = await import('mongodb');
     
     let query: any = {};
 
     // Admins and teachers can see all, trainers see only their own
     if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      query.trainerId = userId;
+      // Convert userId string to ObjectId for query
+      query.trainerId = typeof userId === 'string' ? (new ObjectId(userId) as any) : userId;
     } else if (trainerId) {
-      query.trainerId = trainerId;
+      query.trainerId = typeof trainerId === 'string' ? (new ObjectId(trainerId) as any) : trainerId;
     }
 
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
