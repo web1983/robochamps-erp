@@ -49,9 +49,9 @@ interface LateUploadRequest {
   year: number;
   reason: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  requestedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
+  createdAt: string;
+  decidedAt?: string;
+  decidedByAdminName?: string;
 }
 
 function TrainerCombinedSheetContent() {
@@ -548,7 +548,7 @@ function TrainerCombinedSheetContent() {
                       </p>
                       <p className="text-sm text-gray-600 mt-1">{request.reason}</p>
                       <p className="text-xs text-gray-500 mt-2">
-                        Requested: {format(new Date(request.requestedAt), 'PPp')}
+                        Requested: {format(new Date(request.createdAt), 'PPp')}
                       </p>
                     </div>
                     <div className="text-right">

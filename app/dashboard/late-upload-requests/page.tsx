@@ -17,10 +17,9 @@ interface LateUploadRequest {
   year: number;
   reason: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  requestedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  reviewedByName?: string;
+  createdAt: string;
+  decidedAt?: string;
+  decidedByAdminName?: string;
 }
 
 interface School {
@@ -338,7 +337,7 @@ export default function LateUploadRequestsPage() {
                   {requests.map((request) => (
                     <tr key={request._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {format(new Date(request.requestedAt), 'PPp')}
+                        {format(new Date(request.createdAt), 'PPp')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {request.trainerName}
@@ -372,10 +371,10 @@ export default function LateUploadRequestsPage() {
                         >
                           {request.status}
                         </span>
-                        {request.reviewedAt && (
+                        {request.decidedAt && (
                           <p className="text-xs text-gray-500 mt-1">
-                            Reviewed: {format(new Date(request.reviewedAt), 'PPp')}
-                            {request.reviewedByName && ` by ${request.reviewedByName}`}
+                            Reviewed: {format(new Date(request.decidedAt), 'PPp')}
+                            {request.decidedByAdminName && ` by ${request.decidedByAdminName}`}
                           </p>
                         )}
                       </td>
