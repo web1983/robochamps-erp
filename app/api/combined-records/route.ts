@@ -28,16 +28,16 @@ export async function GET(request: NextRequest) {
     const users = await getCollection<User>('users');
     const schools = await getCollection<School>('schools');
 
+    const { ObjectId } = await import('mongodb');
+
     // Build attendance query
     let attendanceQuery: any = {};
     if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      attendanceQuery.trainerId = userId;
+      attendanceQuery.trainerId = new ObjectId(userId) as any;
     }
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
-      const { ObjectId } = await import('mongodb');
-      attendanceQuery.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
+      attendanceQuery.schoolId = new ObjectId(schoolId) as any;
     } else if (schoolIdFilter) {
-      const { ObjectId } = await import('mongodb');
       attendanceQuery.schoolId = new ObjectId(schoolIdFilter) as any;
     }
     if (startDate || endDate) {
@@ -62,11 +62,9 @@ export async function GET(request: NextRequest) {
       reportsQuery.type = 'TEACHER_TRAINING';
     }
     if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
-      const { ObjectId } = await import('mongodb');
-      reportsQuery.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
+      reportsQuery.schoolId = schoolId;
     } else if (schoolIdFilter) {
-      const { ObjectId } = await import('mongodb');
-      reportsQuery.schoolId = new ObjectId(schoolIdFilter) as any;
+      reportsQuery.schoolId = schoolIdFilter;
     }
     if (startDate || endDate) {
       reportsQuery.datetime = {};
