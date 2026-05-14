@@ -13,6 +13,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.0",
     "date-fns": "^3.0.6",
+    "framer-motion": "^12.38.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "lucide-react": "^0.575.0",

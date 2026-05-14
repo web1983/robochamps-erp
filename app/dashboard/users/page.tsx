@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import DashboardHeader from '@/components/DashboardHeader';
 import { format } from 'date-fns';
 
 interface User {
@@ -253,19 +252,14 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="font-sans text-gray-900">
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <DashboardHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="font-sans text-gray-900">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
@@ -710,7 +704,6 @@ export default function UsersPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

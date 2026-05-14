@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import DashboardHeader from '@/components/DashboardHeader';
 import { format } from 'date-fns';
 
 interface UploadedSheet {
@@ -125,11 +124,8 @@ export default function UploadedSheetsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="font-sans text-gray-900">
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
@@ -144,9 +140,7 @@ export default function UploadedSheetsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <DashboardHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="font-sans text-gray-900">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Uploaded Signed Sheets</h1>
           <p className="text-gray-500">View and filter all uploaded combined sheets by trainers</p>
@@ -328,7 +322,6 @@ export default function UploadedSheetsPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import DashboardHeader from '@/components/DashboardHeader';
 import { format } from 'date-fns';
 
 interface LateUploadRequest {
@@ -175,11 +174,8 @@ export default function LateUploadRequestsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="font-sans text-gray-900">
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
@@ -196,9 +192,7 @@ export default function LateUploadRequestsPage() {
   const pendingCount = requests.filter((r) => r.status === 'PENDING').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <DashboardHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="font-sans text-gray-900">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Late Upload Requests</h1>
           <p className="text-gray-500">Review and approve/reject late upload requests from trainers</p>
@@ -407,7 +401,6 @@ export default function LateUploadRequestsPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

@@ -1,308 +1,296 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
-import Link from 'next/link';
-import MeetingLinksSection from '@/components/MeetingLinksSection';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { motion } from 'framer-motion';
+import StatsCard from '@/components/StatsCard';
+import MiniBarChart from '@/components/MiniBarChart';
+import QuickActionButton from '@/components/QuickActionButton';
+
+interface DashboardStats {
+  totalUsers: number;
+  totalSchools: number;
+  totalAttendance: number;
+  totalReports: number;
+  totalMeetingLinks: number;
+  recentAttendance: number[];
+}
 
 function DashboardContent() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session } = useSession();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalSchools: 0,
+    totalAttendance: 0,
+    totalReports: 0,
+    totalMeetingLinks: 0,
+    recentAttendance: [4, 7, 5, 9, 6, 8, 3, 7, 5, 8, 6, 9],
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return;
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const [usersRes, schoolsRes, attendanceRes, reportsRes, meetingRes] = await Promise.allSettled([
+        fetch('/api/users'),
+        fetch('/api/schools'),
+        fetch('/api/attendance'),
+        fetch('/api/reports'),
+        fetch('/api/meeting-links/stats'),
+      ]);
+
+      const users = usersRes.status === 'fulfilled' && usersRes.value.ok ? await usersRes.value.json() : null;
+      const schools = schoolsRes.status === 'fulfilled' && schoolsRes.value.ok ? await schoolsRes.value.json() : null;
+      const attendance = attendanceRes.status === 'fulfilled' && attendanceRes.value.ok ? await attendanceRes.value.json() : null;
+      const reports = reportsRes.status === 'fulfilled' && reportsRes.value.ok ? await reportsRes.value.json() : null;
+      const meetings = meetingRes.status === 'fulfilled' && meetingRes.value.ok ? await meetingRes.value.json() : null;
+
+      setStats({
+        totalUsers: users?.users?.length || 0,
+        totalSchools: schools?.schools?.length || 0,
+        totalAttendance: attendance?.records?.length || 0,
+        totalReports: reports?.reports?.length || 0,
+        totalMeetingLinks: meetings?.meetingLinks?.length || 0,
+        recentAttendance: [4, 7, 5, 9, 6, 8, 3, 7, 5, 8, 6, 9],
+      });
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (status === 'authenticated') {
-      const role = (session?.user as any)?.role;
-      if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-        router.push('/trainer/dashboard');
-        return;
-      }
-    }
-  }, [status, session, router]);
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center gap-8">
-                <img
-                  src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
-                  alt="Logo"
-                  className="h-8 object-contain"
-                />
-              </div>
-            </div>
-          </div>
-        </nav>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'unauthenticated' || !session) {
-    return null;
-  }
-
-  const role = (session.user as any)?.role;
-  if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-    return null;
-  }
-
-  const userName = (session?.user as any)?.name || (role === 'ADMIN' ? 'Admin' : 'Teacher');
-  const userEmail = (session?.user as any)?.email || '';
-
-  const features = [
-    ...(role === 'TEACHER' ? [{
-      title: 'Training Report',
-      description: 'Submit daily training report for trainers.',
-      icon: '📚',
-      action: 'Create Report',
-      href: '/dashboard/training-report/new',
-    }] : []),
-    {
-      title: 'View Reports',
-      description: 'View all trainer and teacher reports.',
-      icon: '📊',
-      action: 'Browse All',
-      href: '/dashboard/reports',
-    },
-    {
-      title: 'Attendance',
-      description: 'View and export attendance records.',
-      icon: '✅',
-      action: 'View Records',
-      href: '/dashboard/attendance',
-    },
-    {
-      title: 'Combined Sheet',
-      description: 'View attendance and reports together.',
-      icon: '📋',
-      action: 'View Sheet',
-      href: '/dashboard/combined-records',
-    },
-    ...(role === 'ADMIN' ? [
-      {
-        title: 'User Management',
-        description: 'Create and manage users and admins.',
-        icon: '👥',
-        action: 'Manage Users',
-        href: '/dashboard/users',
-      },
-      {
-        title: 'Schools',
-        description: 'Manage schools and locations.',
-        icon: '🏫',
-        action: 'Manage Schools',
-        href: '/dashboard/schools',
-      },
-      {
-        title: 'Meeting Links',
-        description: 'Manage meeting links and track clicks.',
-        icon: '🔗',
-        action: 'Manage Links',
-        href: '/dashboard/meeting-links',
-      },
-      {
-        title: 'Uploaded Sheets',
-        description: 'View and filter uploaded signed combined sheets.',
-        icon: '📄',
-        action: 'View Sheets',
-        href: '/dashboard/uploaded-sheets',
-      },
-      {
-        title: 'Late Upload Requests',
-        description: 'Review and approve/reject late upload requests.',
-        icon: '⏰',
-        action: 'Manage Requests',
-        href: '/dashboard/late-upload-requests',
-      },
-    ] : []),
-  ];
+  const role = (session?.user as any)?.role;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-8">
-              <img
-                src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
-                alt="Logo"
-                className="h-8 object-contain"
-              />
+    <>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Total Users"
+          value={loading ? '...' : stats.totalUsers}
+          change="12%"
+          changeType="positive"
+          delay={0}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          }
+          chart={<MiniBarChart data={[3, 5, 7, 4, 8, 6, 9, 5, 7, 8]} />}
+        />
+
+        <StatsCard
+          title="Attendance Records"
+          value={loading ? '...' : stats.totalAttendance}
+          change="8%"
+          changeType="positive"
+          delay={0.1}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+          chart={<MiniBarChart data={[6, 4, 8, 5, 9, 7, 6, 8, 5, 7]} color="#10B981" />}
+        />
+
+        <StatsCard
+          title="Active Meetings"
+          value={loading ? '...' : stats.totalMeetingLinks}
+          change="3"
+          changeType="neutral"
+          delay={0.2}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+          }
+          chart={<MiniBarChart data={[2, 4, 3, 5, 4, 6, 3, 5, 4, 3]} color="#3B82F6" />}
+        />
+
+        <StatsCard
+          title="Reports Submitted"
+          value={loading ? '...' : stats.totalReports}
+          change="15%"
+          changeType="positive"
+          delay={0.3}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+          }
+          chart={<MiniBarChart data={[5, 8, 6, 9, 7, 8, 4, 7, 9, 6]} color="#8B5CF6" />}
+        />
+      </div>
+
+      {/* Middle Section: Chart + Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Activity Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="lg:col-span-2 bg-white rounded-3xl p-6 border border-[#E5E7EB] shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-[#0F172A]">Activity Overview</h3>
+              <p className="text-sm text-[#6B7280]">Attendance and reports this month</p>
+            </div>
+            <select className="text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-600 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+              <option>This Month</option>
+              <option>Last Month</option>
+              <option>Last 3 Months</option>
+            </select>
+          </div>
+
+          {/* Chart Area */}
+          <div className="h-52 flex items-end gap-2 px-2">
+            {stats.recentAttendance.map((val, i) => (
+              <motion.div
+                key={i}
+                className="flex-1 flex flex-col items-center gap-1"
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                transition={{ duration: 0.5, delay: 0.5 + i * 0.05 }}
+              >
+                <div
+                  className="w-full rounded-lg bg-gradient-to-t from-emerald-500 to-emerald-400 min-w-[20px]"
+                  style={{ height: `${(val / 10) * 180}px` }}
+                />
+                <span className="text-[10px] text-gray-400 font-medium">
+                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Summary Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="bg-gradient-to-br from-[#0B1F14] to-[#1a3a25] rounded-3xl p-6 text-white"
+        >
+          <h3 className="text-lg font-bold mb-2">Platform Summary</h3>
+          <p className="text-emerald-300/70 text-sm mb-6">Overview of the ERP system</p>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-gray-300">Schools</span>
+              </div>
+              <span className="text-lg font-bold">{loading ? '...' : stats.totalSchools}</span>
             </div>
 
-            <div className="flex items-center gap-6">
-              {/* Navigation Links */}
-              <div className="hidden lg:flex items-center gap-4">
-                <Link
-                  href="/dashboard/reports"
-                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                >
-                  Reports
-                </Link>
-                <Link
-                  href="/dashboard/attendance"
-                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                >
-                  Attendance
-                </Link>
-                <Link
-                  href="/dashboard/combined-records"
-                  className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                >
-                  Combined Sheet
-                </Link>
-                {role === 'ADMIN' && (
-                  <>
-                    <Link
-                      href="/dashboard/users"
-                      className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                    >
-                      Users
-                    </Link>
-                    <Link
-                      href="/dashboard/schools"
-                      className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                    >
-                      Schools
-                    </Link>
-                    <Link
-                      href="/dashboard/meeting-links"
-                      className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                    >
-                      Meeting Links
-                    </Link>
-                  </>
-                )}
-                {role === 'TEACHER' && (
-                  <Link
-                    href="/dashboard/training-report/new"
-                    className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-                  >
-                    Training Report
-                  </Link>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {userName}
-                  </p>
-                  <p className="text-xs text-gray-500">{userEmail}</p>
-                </div>
-                <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center border border-gray-200">
-                  <span className="text-gray-600 text-sm">👤</span>
-                </div>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="p-2 text-gray-600 hover:text-red-600 transition-colors border border-gray-200 rounded hover:border-red-300"
-                  title="Sign out"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493" />
                   </svg>
-                </button>
+                </div>
+                <span className="text-sm font-medium text-gray-300">Trainers</span>
               </div>
+              <span className="text-lg font-bold">{loading ? '...' : stats.totalUsers}</span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-gray-300">Meetings</span>
+              </div>
+              <span className="text-lg font-bold">{loading ? '...' : stats.totalMeetingLinks}</span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-gray-300">Reports</span>
+              </div>
+              <span className="text-lg font-bold">{loading ? '...' : stats.totalReports}</span>
             </div>
           </div>
-        </div>
-      </nav>
+        </motion.div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
-            Good morning, {userName.split(' ')[0]}
-          </h1>
-          <p className="text-lg text-gray-500">
-            {role === 'ADMIN' ? 'Manage your ERP system efficiently.' : 'Welcome back! Manage your training reports.'}
-          </p>
-        </div>
-
-        <MeetingLinksSection />
-
-        {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <Link
-              key={index}
-              href={feature.href}
-              className="group bg-white p-8 border border-gray-100 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-sm cursor-pointer relative overflow-hidden"
-            >
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-
-              <div className="text-4xl mb-6">{feature.icon}</div>
-
-              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
-                {feature.title}
-              </h3>
-
-              <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-                {feature.description}
-              </p>
-
-              <div className="flex items-center text-sm font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">
-                {feature.action}
-                <span className="ml-2 transform group-hover:translate-x-1 transition-transform">
-                  →
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </main>
-    </div>
+      {/* Quick Actions */}
+      {role === 'ADMIN' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <h3 className="text-lg font-bold text-[#0F172A] mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <QuickActionButton
+              label="Manage Users"
+              href="/dashboard/users"
+              delay={0.7}
+              color="emerald"
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+              }
+            />
+            <QuickActionButton
+              label="View Attendance"
+              href="/dashboard/attendance"
+              delay={0.8}
+              color="blue"
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+            />
+            <QuickActionButton
+              label="Meeting Links"
+              href="/dashboard/meeting-links"
+              delay={0.9}
+              color="purple"
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+              }
+            />
+            <QuickActionButton
+              label="View Reports"
+              href="/dashboard/reports"
+              delay={1.0}
+              color="amber"
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+              }
+            />
+          </div>
+        </motion.div>
+      )}
+    </>
   );
 }
 
-export default function Dashboard() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-          <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between h-16">
-                <div className="flex items-center gap-8">
-                  <img
-                    src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
-                    alt="Logo"
-                    className="h-8 object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-          </nav>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <p className="text-gray-500">Loading...</p>
-          </div>
-        </div>
-      }
-    >
-      <DashboardContent />
-    </Suspense>
-  );
+export default function DashboardPage() {
+  return <DashboardContent />;
 }

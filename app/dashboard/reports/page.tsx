@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -52,19 +51,14 @@ function ReportsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="font-sans text-gray-900">
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <DashboardHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="font-sans text-gray-900">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
           <Link
@@ -153,7 +147,6 @@ function ReportsContent() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -161,11 +154,8 @@ function ReportsContent() {
 export default function ReportsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="font-sans text-gray-900">
+        <p className="text-gray-500">Loading...</p>
       </div>
     }>
       <ReportsContent />
