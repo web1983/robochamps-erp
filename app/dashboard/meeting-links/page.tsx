@@ -35,6 +35,7 @@ export default function MeetingLinksPage() {
   const [totalClicks, setTotalClicks] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingLink, setEditingLink] = useState<MeetingLink | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     url: '',
@@ -133,8 +134,11 @@ export default function MeetingLinksPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch('/api/meeting-links', {
-        method: 'POST',
+      const url = editingLink ? `/api/meeting-links/${editingLink._id}` : '/api/meeting-links';
+      const method = editingLink ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
@@ -142,17 +146,40 @@ export default function MeetingLinksPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create meeting link');
+        throw new Error(data.error || `Failed to ${editingLink ? 'update' : 'create'} meeting link`);
       }
 
       setFormData({ title: '', url: '', description: '', pptDriveLink: '', isActive: true, scheduledDate: '', scheduledTime: '' });
       setShowAddForm(false);
+      setEditingLink(null);
       fetchStats();
     } catch (err: any) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditLink = (link: MeetingLink) => {
+    setEditingLink(link);
+    setFormData({
+      title: link.title,
+      url: link.url,
+      description: link.description || '',
+      pptDriveLink: link.pptDriveLink || '',
+      isActive: link.isActive,
+      scheduledDate: link.scheduledDate ? link.scheduledDate.split('T')[0] : '',
+      scheduledTime: link.scheduledTime || '',
+    });
+    setShowAddForm(false);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEditLink = () => {
+    setEditingLink(null);
+    setFormData({ title: '', url: '', description: '', pptDriveLink: '', isActive: true, scheduledDate: '', scheduledTime: '' });
+    setError('');
   };
 
   const handleDelete = async (id: string) => {
@@ -257,10 +284,16 @@ export default function MeetingLinksPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Meeting Links</h1>
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (editingLink) {
+                cancelEditLink();
+              } else {
+                setShowAddForm(!showAddForm);
+              }
+            }}
             className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
           >
-            {showAddForm ? 'Cancel' : '+ Add Meeting Link'}
+            {showAddForm || editingLink ? 'Cancel' : '+ Add Meeting Link'}
           </button>
         </div>
 
@@ -270,9 +303,11 @@ export default function MeetingLinksPage() {
           </div>
         )}
 
-        {showAddForm && (
+        {(showAddForm || editingLink) && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Meeting Link</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {editingLink ? 'Edit Meeting Link' : 'Add New Meeting Link'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -366,7 +401,9 @@ export default function MeetingLinksPage() {
                 disabled={submitting}
                 className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold disabled:opacity-50"
               >
-                {submitting ? 'Creating...' : 'Create Link'}
+                {submitting
+                  ? (editingLink ? 'Updating...' : 'Creating...')
+                  : (editingLink ? 'Update Link' : 'Create Link')}
               </button>
             </form>
           </div>
@@ -447,6 +484,12 @@ export default function MeetingLinksPage() {
                       </div>
                     </div>
                     <div className="flex space-x-2 ml-4">
+                      <button
+                        onClick={() => handleEditLink(link)}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm font-semibold hover:bg-blue-200"
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => toggleActive(link._id, link.isActive)}
                         className={`px-3 py-1 rounded text-sm font-semibold ${
