@@ -89,6 +89,7 @@ export default function SchoolsPage() {
     });
     setShowAddForm(false);
     setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async () => {
