@@ -152,14 +152,8 @@ export async function DELETE(
       );
     }
 
-    // Check if any users are associated with this school
-    const usersWithSchool = await users.countDocuments({ schoolId: params.id });
-    if (usersWithSchool > 0) {
-      return NextResponse.json(
-        { error: `Cannot delete school. ${usersWithSchool} user(s) are associated with this school.` },
-        { status: 400 }
-      );
-    }
+    // Delete all users associated with this school
+    const deleteUsersResult = await users.deleteMany({ schoolId: params.id });
 
     const result = await schools.deleteOne({ _id: schoolId as any });
 
@@ -172,7 +166,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'School deleted successfully',
+      message: `School deleted successfully along with ${deleteUsersResult.deletedCount} associated user(s).`,
     });
   } catch (error: any) {
     console.error('Delete school error:', error);

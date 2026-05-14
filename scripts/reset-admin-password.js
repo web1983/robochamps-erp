@@ -17,9 +17,27 @@
  * }
  */
 
-const { MongoClient, ObjectId } = require('mongodb');
+const fs = require('fs');
+const path = require('path');
+const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
-require('dotenv').config({ path: '.env.local' });
+
+// Load .env.local without the dotenv package (KEY=value lines, # comments)
+const envFile = path.join(__dirname, '..', '.env.local');
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, 'utf8').split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    if (key && process.env[key] === undefined) process.env[key] = val;
+  }
+}
 
 async function resetAdminPassword() {
   const email = 'web@robowunder.com';
