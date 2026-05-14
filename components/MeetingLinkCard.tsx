@@ -31,23 +31,18 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleClick = async () => {
+  const handleClick = () => {
     setClicking(true);
     
-    // Track the click
-    try {
-      await fetch('/api/meeting-links/click', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ meetingLinkId: meetingLink._id }),
-      });
-    } catch (error) {
+    // Track the click in the background (don't await — let the link open immediately)
+    fetch('/api/meeting-links/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meetingLinkId: meetingLink._id }),
+    }).catch((error) => {
       console.error('Failed to track click:', error);
-    }
+    });
 
-    // Open the link in a new tab
-    window.open(meetingLink.url, '_blank');
-    
     setTimeout(() => setClicking(false), 1000);
   };
 
@@ -146,38 +141,49 @@ export default function MeetingLinkCard({ meetingLink }: MeetingLinkCardProps) {
         <div className="text-3xl ml-4">🔗</div>
       </div>
       <div className="space-y-2">
-        <button
-          onClick={handleClick}
-          disabled={clicking || !canClickMeeting}
-          className={`w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-            canClickMeeting
-              ? isTodayMeeting 
+        {canClickMeeting ? (
+          <a
+            href={meetingLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleClick}
+            className={`block w-full py-3 rounded-lg font-semibold text-center transition-colors ${
+              isTodayMeeting 
                 ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
                 : 'bg-emerald-500 text-white hover:bg-emerald-600'
-              : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-          }`}
-          title={!canClickMeeting && timeUntilAccessible ? `Meeting will be available in ${timeUntilAccessible}` : ''}
-        >
-          {clicking 
-            ? 'Opening...' 
-            : !canClickMeeting && timeUntilAccessible
-            ? `Join Meeting (Available in ${timeUntilAccessible})`
-            : isTodayMeeting 
-            ? 'Join Meeting (Today)' 
-            : 'Join Meeting'}
-        </button>
+            }`}
+          >
+            {clicking 
+              ? 'Opening...' 
+              : isTodayMeeting 
+              ? 'Join Meeting (Today)' 
+              : 'Join Meeting'}
+          </a>
+        ) : (
+          <button
+            disabled
+            className="w-full py-3 rounded-lg font-semibold transition-colors bg-gray-300 text-gray-600 cursor-not-allowed opacity-50"
+            title={timeUntilAccessible ? `Meeting will be available in ${timeUntilAccessible}` : ''}
+          >
+            {timeUntilAccessible
+              ? `Join Meeting (Available in ${timeUntilAccessible})`
+              : 'Join Meeting'}
+          </button>
+        )}
         {!canClickMeeting && timeUntilAccessible && (
           <p className="text-xs text-gray-500 text-center">
             Meeting link will be available 5 minutes before the scheduled time
           </p>
         )}
         {meetingLink.pptDriveLink && (
-          <button
-            onClick={() => window.open(meetingLink.pptDriveLink, '_blank')}
-            className="w-full py-3 rounded-lg font-semibold transition-colors bg-blue-500 text-white hover:bg-blue-600 border border-transparent"
+          <a
+            href={meetingLink.pptDriveLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-3 rounded-lg font-semibold text-center transition-colors bg-blue-500 text-white hover:bg-blue-600 border border-transparent"
           >
             📄 View PPT / Presentation
-          </button>
+          </a>
         )}
       </div>
     </div>
