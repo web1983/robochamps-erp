@@ -110,7 +110,7 @@ export default function LateUploadRequestsPage() {
     setProcessingId(requestId);
     try {
       const response = await fetch(`/api/late-upload-requests/${requestId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -139,7 +139,7 @@ export default function LateUploadRequestsPage() {
     setProcessingId(requestId);
     try {
       const response = await fetch(`/api/late-upload-requests/${requestId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },

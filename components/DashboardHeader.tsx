@@ -106,6 +106,12 @@ export default function DashboardHeader({
               >
                 Uploaded Sheets
               </Link>
+              <Link
+                href="/dashboard/late-upload-requests"
+                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+              >
+                Late Requests
+              </Link>
             </>
           )}
           {userRole === 'TEACHER' && (
