@@ -775,7 +775,7 @@ export default function LandingPage() {
               Login to Dashboard
             </GlowButton>
             <a
-              href="mailto:support@robochamps.com"
+              href="mailto:pd@robowunder.com"
               className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/10 transition-colors"
             >
               Book Demo
@@ -794,16 +794,6 @@ export default function LandingPage() {
                 Robochamps ERP — Smart robotics training management with attendance, reports, analytics, and operational
                 oversight.
               </p>
-              <div className="flex gap-3 mt-6">
-                {['in', 'x', 'yt'].map((s) => (
-                  <span
-                    key={s}
-                    className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs text-gray-400 uppercase"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-4">Product</p>
@@ -839,7 +829,11 @@ export default function LandingPage() {
             </motion.div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-4">Contact</p>
-              <p className="text-sm text-gray-400">support@robochamps.com</p>
+              <p className="text-sm text-gray-400">
+                <a href="mailto:pd@robowunder.com" className="hover:text-white transition-colors">
+                  pd@robowunder.com
+                </a>
+              </p>
               <p className="text-sm text-gray-400 mt-2">Robotics training programs worldwide</p>
             </div>
           </motion.div>
