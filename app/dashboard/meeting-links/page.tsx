@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format, startOfDay, parseISO, isValid, isBefore } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
+import {
+  getVisibleMeetingLinks,
+  isUpcomingMeeting,
+  meetingTargetDate,
+} from '@/lib/meetingLinkUtils';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 
@@ -302,17 +307,6 @@ export default function MeetingLinksPage() {
   }
 
   if (!isAdmin) {
-    const meetingTarget = (link: MeetingLink) => {
-      if (!link.scheduledDate) return null as Date | null;
-      try {
-        const t = link.scheduledTime ? `${link.scheduledDate}T${link.scheduledTime}` : link.scheduledDate;
-        const d = parseISO(t);
-        return isValid(d) ? d : null;
-      } catch {
-        return null;
-      }
-    };
-
     const trackJoin = async (meetingLinkId: string) => {
       try {
         await fetch('/api/meeting-links/click', {
@@ -326,14 +320,7 @@ export default function MeetingLinksPage() {
     };
 
     const now = new Date();
-    const visible = meetingLinks
-      .filter((m) => m.isActive)
-      .filter((m) => {
-        const t = meetingTarget(m);
-        if (!t) return true;
-        return !isBefore(startOfDay(t), startOfDay(now));
-      })
-      .sort((a, b) => (meetingTarget(a)?.getTime() ?? Infinity) - (meetingTarget(b)?.getTime() ?? Infinity));
+    const visible = getVisibleMeetingLinks(meetingLinks, now);
 
     return (
       <div className="space-y-6">
@@ -353,8 +340,9 @@ export default function MeetingLinksPage() {
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             {visible.map((link, idx) => {
-              const target = meetingTarget(link);
+              const target = meetingTargetDate(link);
               const isToday = target && startOfDay(target).getTime() === startOfDay(now).getTime();
+              const isPast = target && !isUpcomingMeeting(link, now);
               return (
                 <motion.div
                   key={link._id}
@@ -368,10 +356,14 @@ export default function MeetingLinksPage() {
                     <h2 className="text-lg font-bold text-[#0F172A]">{link.title}</h2>
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
-                        isToday ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'
+                        isToday
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : isPast
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-50 text-slate-600 border-slate-200'
                       }`}
                     >
-                      {isToday ? 'Today' : target ? format(target, 'MMM d') : 'Open'}
+                      {isToday ? 'Today' : isPast ? 'Available' : target ? format(target, 'MMM d') : 'Open'}
                     </span>
                   </div>
                   <p className="text-sm text-[#6B7280] mb-2 line-clamp-3">{link.description || 'Live training session'}</p>

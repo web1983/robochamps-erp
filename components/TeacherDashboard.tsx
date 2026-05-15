@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { format, startOfDay, subDays, subMonths, parseISO, isValid, isBefore } from 'date-fns';
+import { format, startOfDay, subDays, subMonths, isValid } from 'date-fns';
+import {
+  getUpcomingMeetingLinks,
+  getVisibleMeetingLinks,
+  isUpcomingMeeting,
+  meetingTargetDate,
+} from '@/lib/meetingLinkUtils';
 import StatsCard from '@/components/StatsCard';
 import MiniBarChart from '@/components/MiniBarChart';
 import QuickActionButton from '@/components/QuickActionButton';
@@ -101,17 +107,6 @@ function useMeetingCountdown(target?: Date | null) {
     return () => clearInterval(id);
   }, [target]);
   return label;
-}
-
-function meetingTargetDate(link: MeetingLink): Date | null {
-  if (!link.scheduledDate) return null;
-  try {
-    const t = link.scheduledTime ? `${link.scheduledDate}T${link.scheduledTime}` : link.scheduledDate;
-    const d = parseISO(t);
-    return isValid(d) ? d : null;
-  } catch {
-    return null;
-  }
 }
 
 const chartTooltip = {
@@ -220,23 +215,11 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
     return Math.min(100, Math.round((days.size / 14) * 100));
   }, [filteredAttendance]);
 
-  const upcomingMeetings = useMemo(() => {
-    const now = new Date();
-    return meetings
-      .filter((m) => m.isActive)
-      .filter((m) => {
-        const t = meetingTargetDate(m);
-        if (!t) return true;
-        return !isBefore(startOfDay(t), startOfDay(now));
-      })
-      .sort((a, b) => {
-        const ta = meetingTargetDate(a)?.getTime() ?? Infinity;
-        const tb = meetingTargetDate(b)?.getTime() ?? Infinity;
-        return ta - tb;
-      });
-  }, [meetings]);
+  const visibleMeetings = useMemo(() => getVisibleMeetingLinks(meetings), [meetings]);
 
-  const upcomingCount = upcomingMeetings.length;
+  const upcomingMeetings = useMemo(() => getUpcomingMeetingLinks(meetings), [meetings]);
+
+  const upcomingCount = visibleMeetings.length;
   const submittedReports = reports.length;
 
   const sessionsNeedingReport = useMemo(() => {
@@ -311,7 +294,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
   const displayReports = useCountUp(loading ? 0 : submittedReports);
   const displayPending = useCountUp(loading ? 0 : pendingTasks);
 
-  const nextMeeting = upcomingMeetings[0];
+  const nextMeeting = upcomingMeetings[0] ?? visibleMeetings[0];
   const nextTarget = nextMeeting ? meetingTargetDate(nextMeeting) : null;
   const countdown = useMeetingCountdown(nextTarget);
 
@@ -383,9 +366,9 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
           chart={<MiniBarChart data={weeklyBars.map((w) => w.sessions)} color="#22C55E" />}
         />
         <StatsCard
-          title="Upcoming meetings"
+          title="Active meetings"
           value={displayMeetings}
-          change="Next sessions"
+          change={`${upcomingMeetings.length} scheduled ahead`}
           changeType="neutral"
           delay={0.08}
           icon={
@@ -444,13 +427,14 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
           )}
         </div>
 
-        {upcomingMeetings.length === 0 ? (
-          <p className="text-sm text-[#6B7280]">No upcoming meetings. Check back soon.</p>
+        {visibleMeetings.length === 0 ? (
+          <p className="text-sm text-[#6B7280]">No active meeting links right now. Check back soon.</p>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {upcomingMeetings.slice(0, 4).map((link, idx) => {
+            {visibleMeetings.slice(0, 4).map((link, idx) => {
               const target = meetingTargetDate(link);
               const isToday = target && startOfDay(target).getTime() === startOfDay(new Date()).getTime();
+              const isPast = target && !isUpcomingMeeting(link);
               return (
                 <motion.div
                   key={link._id}
@@ -473,10 +457,12 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
                         className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${
                           isToday
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                            : isPast
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : 'bg-slate-50 text-slate-600 border-slate-200'
                         }`}
                       >
-                        {isToday ? 'Today' : target ? format(target, 'MMM d') : 'Open'}
+                        {isToday ? 'Today' : isPast ? 'Available' : target ? format(target, 'MMM d') : 'Open'}
                       </span>
                     </div>
                     <div className="text-sm text-[#6B7280]">

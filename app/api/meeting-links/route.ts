@@ -81,7 +81,10 @@ export async function GET(request: NextRequest) {
     }
 
     const meetingLinks = await getCollection<MeetingLink>('meetingLinks');
-    const links = await meetingLinks.find({ isActive: true }).sort({ 
+    // Include legacy links where isActive was never set (treat as active)
+    const links = await meetingLinks
+      .find({ $or: [{ isActive: true }, { isActive: { $exists: false } }] })
+      .sort({
       scheduledDate: 1, // Sort by scheduled date (upcoming first)
       createdAt: -1 
     }).toArray();
