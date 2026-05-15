@@ -98,7 +98,7 @@ function TeacherPreview() {
     <div className="flex min-h-[280px] sm:min-h-[320px]">
       <Sidebar active={1} />
       <div className="flex-1 p-3 sm:p-4" style={{ background: BG }}>
-        <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">Teacher Dashboard</p>
+        <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">School View Dashboard</p>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <StatCard title="Attendance" value="92%" color="#22C55E" />

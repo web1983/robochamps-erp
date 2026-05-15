@@ -143,7 +143,7 @@ const ROLES = [
   },
   {
     role: 'TEACHER',
-    title: 'Teacher',
+    title: 'School View',
     desc: 'School-scoped dashboards, meetings, and progress tracking.',
     features: ['Attendance overview', 'Meeting links & PPTs', 'Reports & assignments', 'Performance view'],
     chart: [2, 4, 6, 5, 7, 8, 7],
@@ -160,14 +160,14 @@ const ROLES = [
 const WORKFLOW = [
   { step: '01', title: 'Trainer Marks Attendance', desc: 'Photo + location proof captured in seconds.' },
   { step: '02', title: 'Upload Daily Report', desc: 'Topics, summary, and session notes logged.' },
-  { step: '03', title: 'Teacher Reviews Progress', desc: 'Meetings, reports, and class performance.' },
+  { step: '03', title: 'School View Reviews Progress', desc: 'Meetings, reports, and class performance.' },
   { step: '04', title: 'Admin Tracks Analytics', desc: 'Cross-school KPIs and operational dashboards.' },
   { step: '05', title: 'Generate Insights', desc: 'Trends, exports, and audit-ready records.' },
 ];
 
 const SCREENSHOTS: { label: string; variant: ShowcaseVariant; description: string }[] = [
   { label: 'Admin Dashboard', variant: 'admin', description: 'Schools, users, and global analytics in one view.' },
-  { label: 'Teacher Dashboard', variant: 'teacher', description: 'Meetings, attendance, and class progress for your school.' },
+  { label: 'School View Dashboard', variant: 'teacher', description: 'Meetings, attendance, and class progress for your school.' },
   { label: 'Trainer Dashboard', variant: 'trainer', description: 'Mark attendance, submit reports, and track sessions on the go.' },
   { label: 'Attendance', variant: 'attendance', description: 'Photo and location proof for every training session.' },
   { label: 'Analytics', variant: 'analytics', description: 'Trends, charts, and operational KPIs at a glance.' },
@@ -464,7 +464,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-3">Platform Features</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A]">Everything your robotics program needs</h2>
             <p className="mt-4 text-[#6B7280]">
-              An ERP for schools, trainers, teachers, and admins — attendance, reports, analytics, and more.
+              An ERP for schools, trainers, School View accounts, and admins — attendance, reports, analytics, and more.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -660,7 +660,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-3">Product tour</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A]">See the platform in action</h2>
             <p className="mt-4 text-[#6B7280]">
-              Explore admin, teacher, and trainer workspaces — the same premium UI you get after signing in.
+              Explore admin, School View, and trainer workspaces — the same premium UI you get after signing in.
             </p>
           </div>
 
@@ -789,7 +789,7 @@ export default function LandingPage() {
             Transform Your Robotics Training Operations
           </h2>
           <p className="mt-4 text-emerald-100/70 text-lg max-w-2xl mx-auto">
-            An ERP system designed for robotics training programs, schools, trainers, teachers, and admins.
+            An ERP system designed for robotics training programs, schools, trainers, School View accounts, and admins.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <GlowButton href="/signup" className="!shadow-emerald-500/40">

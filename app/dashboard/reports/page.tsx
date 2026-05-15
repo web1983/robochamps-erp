@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
+import { formatReportTypeLabel } from '@/lib/roleLabels';
 
 interface Report {
   _id: string;
@@ -89,7 +90,7 @@ function ReportsContent() {
               filterType === 'TEACHER_TRAINING' ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-emerald-500'
             }`}
           >
-            Teacher Training
+            {formatReportTypeLabel('TEACHER_TRAINING')}
           </button>
           <button
             onClick={() => setFilterType('TRAINER_CLASS')}
@@ -121,7 +122,7 @@ function ReportsContent() {
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         report.type === 'TEACHER_TRAINING' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-green-50 text-green-700 border border-green-200'
                       }`}>
-                        {report.type === 'TEACHER_TRAINING' ? 'Teacher Training' : 'Trainer Class'}
+                        {formatReportTypeLabel(report.type)}
                       </span>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">

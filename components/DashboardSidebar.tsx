@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useDashboardSearch } from '@/contexts/DashboardSearchContext';
+import { formatRoleLabel } from '@/lib/roleLabels';
 
 interface NavItem {
   label: string;
@@ -348,7 +349,7 @@ export default function DashboardSidebar({ isMobileOpen = false, onMobileClose }
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{userName}</p>
-              <p className="text-[11px] text-gray-500 truncate">{userRole.replace(/_/g, ' ')}</p>
+              <p className="text-[11px] text-gray-500 truncate">{formatRoleLabel(userRole)}</p>
             </div>
           </div>
         </div>

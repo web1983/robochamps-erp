@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
+import { formatRoleLabel } from '@/lib/roleLabels';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -33,7 +34,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Role</p>
-          <p className="text-[#0F172A] font-medium mt-1">{role.replace(/_/g, ' ')}</p>
+          <p className="text-[#0F172A] font-medium mt-1">{formatRoleLabel(role)}</p>
         </div>
         {schoolId && (
           <div>

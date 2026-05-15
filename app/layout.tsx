@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Robochamps ERP',
-  description: 'ERP system for Robochamps trainers and teachers',
+  description: 'ERP system for Robochamps trainers and School View accounts',
   manifest: '/manifest.json',
 };
 

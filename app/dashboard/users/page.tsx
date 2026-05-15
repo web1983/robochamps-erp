@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
+import { formatRoleLabel } from '@/lib/roleLabels';
 
 interface User {
   _id: string;
@@ -355,7 +356,7 @@ export default function UsersPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   >
                     <option value="ADMIN">Admin</option>
-                    <option value="TEACHER">Teacher</option>
+                    <option value="TEACHER">School View</option>
                     <option value="TRAINER_ROBOCHAMPS">Robochamps Trainer</option>
                     <option value="TRAINER_SCHOOL">School Trainer</option>
                   </select>
@@ -459,7 +460,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1 rounded-lg text-xs font-semibold border ${getRoleBadgeColor(user.role)}`}>
-                            {user.role.replace('_', ' ')}
+                            {formatRoleLabel(user.role)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -511,7 +512,7 @@ export default function UsersPage() {
                         <p className="text-sm text-gray-600 break-words">{user.email}</p>
                       </div>
                       <span className={`px-2 py-1 rounded-lg text-xs font-semibold border ml-2 ${getRoleBadgeColor(user.role)}`}>
-                        {user.role.replace('_', ' ')}
+                        {formatRoleLabel(user.role)}
                       </span>
                     </div>
                     <div className="space-y-2 text-sm mb-3">
@@ -625,7 +626,7 @@ export default function UsersPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   >
                     <option value="ADMIN">Admin</option>
-                    <option value="TEACHER">Teacher</option>
+                    <option value="TEACHER">School View</option>
                     <option value="TRAINER_ROBOCHAMPS">Robochamps Trainer</option>
                     <option value="TRAINER_SCHOOL">School Trainer</option>
                   </select>
@@ -650,7 +651,7 @@ export default function UsersPage() {
                     </select>
                     {editFormData.role === 'TEACHER' && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Teachers only see trainers and data from this school.
+                        School View accounts only see trainers and data from this school.
                       </p>
                     )}
                   </div>

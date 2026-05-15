@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Validate permissions
     if (validated.type === 'TEACHER_TRAINING' && role !== 'TEACHER' && role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Only teachers can create training reports' },
+        { error: 'Only School View accounts can create training reports' },
         { status: 403 }
       );
     }
