@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 
 interface Report {
@@ -17,6 +18,8 @@ interface Report {
 }
 
 function ReportsContent() {
+  const { data: session } = useSession();
+  const isTeacher = (session?.user as { role?: string })?.role === 'TEACHER';
   const searchParams = useSearchParams();
   const [reports, setReports] = useState<Report[]>([]);
   const [filterType, setFilterType] = useState<'ALL' | 'TEACHER_TRAINING' | 'TRAINER_CLASS'>('ALL');
@@ -61,12 +64,14 @@ function ReportsContent() {
     <div className="font-sans text-gray-900">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-          <Link
-            href="/dashboard/training-report/new"
-            className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
-          >
-            + New Training Report
-          </Link>
+          {!isTeacher && (
+            <Link
+              href="/dashboard/training-report/new"
+              className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold"
+            >
+              + New Training Report
+            </Link>
+          )}
         </div>
 
         <div className="mb-6 flex space-x-4">

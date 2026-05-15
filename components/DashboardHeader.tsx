@@ -114,14 +114,6 @@ export default function DashboardHeader({
               </Link>
             </>
           )}
-          {userRole === 'TEACHER' && (
-            <Link
-              href="/dashboard/training-report/new"
-              className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
-            >
-              Training Report
-            </Link>
-          )}
         </>
       );
     }
