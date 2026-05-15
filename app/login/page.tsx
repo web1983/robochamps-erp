@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { MinimalInput } from '@/components/ui/MinimalInput';
 import { MinimalButton } from '@/components/ui/MinimalButton';
+import PublicPageLayout from '@/components/landing/PublicPageLayout';
 
 function LoginForm() {
   const router = useRouter();
@@ -18,9 +19,7 @@ function LoginForm() {
 
   useEffect(() => {
     const msg = searchParams.get('message');
-    if (msg) {
-      setMessage(decodeURIComponent(msg));
-    }
+    if (msg) setMessage(decodeURIComponent(msg));
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,8 +35,6 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        console.error('Login error:', result.error);
-        // Check if it's a configuration issue
         if (result.error.includes('configuration') || result.error.includes('NEXTAUTH')) {
           setError('Authentication configuration error. Please contact administrator.');
         } else {
@@ -46,10 +43,9 @@ function LoginForm() {
         return;
       }
 
-      // Redirect based on role
       router.push('/dashboard');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -57,38 +53,25 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white p-4">
-      <div className="w-full max-w-sm space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-6">
-          <img
-            src="https://res.cloudinary.com/dyyi3huje/image/upload/v1771491554/cropped-Robochamps-logo-2-1-1-2-1_wuea4w.png"
-            alt="Robochamps Logo"
-            className="h-12 mx-auto object-contain"
-          />
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-              Welcome back
-            </h1>
-            <p className="text-gray-500">Sign in to access your dashboard</p>
-          </div>
+    <div className="w-full max-w-md">
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white/90 backdrop-blur-md shadow-xl shadow-emerald-500/5 p-8 sm:p-10">
+        <div className="text-center space-y-2 mb-8">
+          <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">Welcome back</h1>
+          <p className="text-[#6B7280] text-sm">Sign in to access your dashboard</p>
         </div>
 
         {message && (
-          <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm">
             {message}
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm">{error}</div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-5">
             <MinimalInput
               label="Email Address"
               type="email"
@@ -113,18 +96,12 @@ function LoginForm() {
             <MinimalButton type="submit" fullWidth disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </MinimalButton>
-
-            <div className="text-center">
-              <span className="text-gray-500 text-sm">
-                Don't have an account?{' '}
-              </span>
-              <Link
-                href="/signup"
-                className="text-emerald-600 font-medium text-sm hover:text-emerald-700 transition-colors"
-              >
+            <p className="text-center text-sm text-[#6B7280]">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-emerald-600 font-semibold hover:text-emerald-700">
                 Sign up
               </Link>
-            </div>
+            </p>
           </div>
         </form>
       </div>
@@ -134,14 +111,14 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ backgroundColor: '#1b1d1e' }}>
-        <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
-          <div className="text-center text-white">Loading...</div>
-        </div>
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
+    <PublicPageLayout>
+      <Suspense
+        fallback={
+          <div className="w-full max-w-md rounded-3xl border border-[#E5E7EB] bg-white p-10 animate-pulse h-96" />
+        }
+      >
+        <LoginForm />
+      </Suspense>
+    </PublicPageLayout>
   );
 }
