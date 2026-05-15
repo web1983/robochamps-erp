@@ -20,6 +20,12 @@ interface School {
   name: string;
 }
 
+type UserRole = 'ADMIN' | 'TEACHER' | 'TRAINER_ROBOCHAMPS' | 'TRAINER_SCHOOL';
+
+function roleNeedsSchool(role: string) {
+  return role === 'TEACHER' || role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL';
+}
+
 export default function UsersPage() {
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
@@ -208,8 +214,7 @@ export default function UsersPage() {
         role: editFormData.role,
       };
 
-      // Only include schoolId if it's a trainer role
-      if (editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') {
+      if (roleNeedsSchool(editFormData.role)) {
         payload.schoolId = editFormData.schoolId || null;
       } else {
         payload.schoolId = null;
@@ -349,9 +354,7 @@ export default function UsersPage() {
                   </select>
                 </div>
 
-                {(formData.role === 'TRAINER_ROBOCHAMPS' ||
-                  formData.role === 'TRAINER_SCHOOL' ||
-                  formData.role === 'TEACHER') && (
+                {roleNeedsSchool(formData.role) && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       School *
@@ -604,7 +607,14 @@ export default function UsersPage() {
                   <select
                     required
                     value={editFormData.role}
-                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as any, schoolId: '' })}
+                    onChange={(e) => {
+                      const role = e.target.value as UserRole;
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        role,
+                        schoolId: role === 'ADMIN' ? '' : prev.schoolId,
+                      }));
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
                   >
                     <option value="ADMIN">Admin</option>
@@ -613,9 +623,7 @@ export default function UsersPage() {
                     <option value="TRAINER_SCHOOL">School Trainer</option>
                   </select>
                 </div>
-                {(editFormData.role === 'TRAINER_ROBOCHAMPS' ||
-                  editFormData.role === 'TRAINER_SCHOOL' ||
-                  editFormData.role === 'TEACHER') && (
+                {roleNeedsSchool(editFormData.role) && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       School *
@@ -633,19 +641,18 @@ export default function UsersPage() {
                         </option>
                       ))}
                     </select>
+                    {editFormData.role === 'TEACHER' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Teachers only see trainers and data from this school.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleUpdateUser}
-                  disabled={
-                    submitting ||
-                    ((editFormData.role === 'TRAINER_ROBOCHAMPS' ||
-                      editFormData.role === 'TRAINER_SCHOOL' ||
-                      editFormData.role === 'TEACHER') &&
-                      !editFormData.schoolId)
-                  }
+                  disabled={submitting || (roleNeedsSchool(editFormData.role) && !editFormData.schoolId)}
                   className="flex-1 bg-emerald-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Updating...' : 'Update User'}

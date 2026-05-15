@@ -179,9 +179,10 @@ export async function PUT(
       updatedAt: new Date(),
     };
 
+    const effectiveRole = validated.role ?? user.role;
+
     if (validated.role) {
       updateData.role = validated.role;
-      // Update trainerType based on role
       if (validated.role === 'TRAINER_ROBOCHAMPS') {
         updateData.trainerType = 'ROBOCHAMPS';
       } else if (validated.role === 'TRAINER_SCHOOL') {
@@ -193,6 +194,15 @@ export async function PUT(
 
     if (schoolId !== undefined) {
       updateData.schoolId = schoolId || null;
+    }
+
+    const needsSchool =
+      effectiveRole === 'TEACHER' ||
+      effectiveRole === 'TRAINER_ROBOCHAMPS' ||
+      effectiveRole === 'TRAINER_SCHOOL';
+    const resolvedSchoolId = updateData.schoolId !== undefined ? updateData.schoolId : user.schoolId;
+    if (needsSchool && !resolvedSchoolId) {
+      return NextResponse.json({ error: 'School is required for this role' }, { status: 400 });
     }
 
     if (validated.newPassword) {
