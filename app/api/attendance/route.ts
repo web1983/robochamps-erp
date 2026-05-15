@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, AttendanceRecord, User, School } from '@/lib/db';
 import { uploadImage } from '@/lib/cloudinary';
+import { schoolScopeFilter } from '@/lib/teacherSchoolScope';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -295,16 +296,19 @@ export async function GET(request: NextRequest) {
     
     let query: any = {};
 
-    // Admins and teachers can see all, trainers see only their own
+    // Trainers see only their records; teachers see trainers at their school only
     if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      // Convert userId string to ObjectId for query
       query.trainerId = typeof userId === 'string' ? (new ObjectId(userId) as any) : userId;
+    } else if (role === 'TEACHER') {
+      if (!schoolId) {
+        return NextResponse.json({ records: [] });
+      }
+      query.schoolId = schoolScopeFilter(schoolId) as any;
     } else if (trainerId) {
       query.trainerId = typeof trainerId === 'string' ? (new ObjectId(trainerId) as any) : trainerId;
     }
 
-    if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
-      const { ObjectId } = await import('mongodb');
+    if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER' && role !== 'TEACHER') {
       query.schoolId = typeof schoolId === 'string' ? (new ObjectId(schoolId) as any) : schoolId;
     } else if (schoolIdFilter) {
       const { ObjectId } = await import('mongodb');

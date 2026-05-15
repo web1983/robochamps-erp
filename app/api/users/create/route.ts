@@ -31,6 +31,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = createUserSchema.parse(body);
 
+    if (
+      (validated.role === 'TEACHER' ||
+        validated.role === 'TRAINER_ROBOCHAMPS' ||
+        validated.role === 'TRAINER_SCHOOL') &&
+      !validated.schoolId
+    ) {
+      return NextResponse.json({ error: 'School is required for this role' }, { status: 400 });
+    }
+
     const users = await getCollection<User>('users');
     
     // Check if user already exists

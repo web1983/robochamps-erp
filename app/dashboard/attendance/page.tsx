@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -23,6 +24,10 @@ interface AttendanceRecord {
 }
 
 export default function AttendancePage() {
+  const { data: session } = useSession();
+  const userRole = (session?.user as { role?: string })?.role;
+  const teacherSchoolId = userRole === 'TEACHER' ? ((session?.user as { schoolId?: string })?.schoolId ?? '') : '';
+
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [schools, setSchools] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,12 +39,20 @@ export default function AttendancePage() {
   const [trainerEmail, setTrainerEmail] = useState('');
 
   useEffect(() => {
-    fetchSchools();
-  }, []);
+    if (userRole !== 'TEACHER') {
+      fetchSchools();
+    }
+  }, [userRole]);
+
+  useEffect(() => {
+    if (teacherSchoolId) {
+      setSchoolId(teacherSchoolId);
+    }
+  }, [teacherSchoolId]);
 
   useEffect(() => {
     fetchAttendance();
-  }, [startDate, endDate, schoolId, trainerName, trainerEmail]);
+  }, [startDate, endDate, schoolId, trainerName, trainerEmail, teacherSchoolId]);
 
   const fetchSchools = async () => {
     try {
@@ -177,21 +190,23 @@ export default function AttendancePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">School</label>
-              <select
-                value={schoolId}
-                onChange={(e) => setSchoolId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm"
-              >
-                <option value="">All Schools</option>
-                {schools.map((school) => (
-                  <option key={school._id} value={school._id}>
-                    {school.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!teacherSchoolId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">School</label>
+                <select
+                  value={schoolId}
+                  onChange={(e) => setSchoolId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm"
+                >
+                  <option value="">All Schools</option>
+                  {schools.map((school) => (
+                    <option key={school._id} value={school._id}>
+                      {school.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Trainer Name</label>
               <input

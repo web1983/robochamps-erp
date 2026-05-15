@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, AttendanceRecord, DailyReport, User, School } from '@/lib/db';
+import { schoolScopeFilter } from '@/lib/teacherSchoolScope';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,10 +59,12 @@ export async function GET(request: NextRequest) {
       reportsQuery.authorId = userId;
       reportsQuery.type = 'TRAINER_CLASS';
     } else if (role === 'TEACHER') {
-      reportsQuery.authorId = userId;
-      reportsQuery.type = 'TEACHER_TRAINING';
-    }
-    if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
+      if (!schoolId) {
+        return NextResponse.json({ records: [] });
+      }
+      reportsQuery.type = 'TRAINER_CLASS';
+      reportsQuery.schoolId = schoolScopeFilter(schoolId);
+    } else if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
       reportsQuery.schoolId = schoolId;
     } else if (schoolIdFilter) {
       reportsQuery.schoolId = schoolIdFilter;

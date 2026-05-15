@@ -92,7 +92,12 @@ export default function UsersPage() {
         role: formData.role,
       };
 
-      if (formData.schoolId && (formData.role === 'TRAINER_ROBOCHAMPS' || formData.role === 'TRAINER_SCHOOL')) {
+      if (
+        formData.schoolId &&
+        (formData.role === 'TRAINER_ROBOCHAMPS' ||
+          formData.role === 'TRAINER_SCHOOL' ||
+          formData.role === 'TEACHER')
+      ) {
         payload.schoolId = formData.schoolId;
       }
 
@@ -344,7 +349,9 @@ export default function UsersPage() {
                   </select>
                 </div>
 
-                {(formData.role === 'TRAINER_ROBOCHAMPS' || formData.role === 'TRAINER_SCHOOL') && (
+                {(formData.role === 'TRAINER_ROBOCHAMPS' ||
+                  formData.role === 'TRAINER_SCHOOL' ||
+                  formData.role === 'TEACHER') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       School *
@@ -606,7 +613,9 @@ export default function UsersPage() {
                     <option value="TRAINER_SCHOOL">School Trainer</option>
                   </select>
                 </div>
-                {(editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') && (
+                {(editFormData.role === 'TRAINER_ROBOCHAMPS' ||
+                  editFormData.role === 'TRAINER_SCHOOL' ||
+                  editFormData.role === 'TEACHER') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       School *
@@ -630,7 +639,13 @@ export default function UsersPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleUpdateUser}
-                  disabled={submitting || (editFormData.role === 'TRAINER_ROBOCHAMPS' || editFormData.role === 'TRAINER_SCHOOL') && !editFormData.schoolId}
+                  disabled={
+                    submitting ||
+                    ((editFormData.role === 'TRAINER_ROBOCHAMPS' ||
+                      editFormData.role === 'TRAINER_SCHOOL' ||
+                      editFormData.role === 'TEACHER') &&
+                      !editFormData.schoolId)
+                  }
                   className="flex-1 bg-emerald-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Updating...' : 'Update User'}

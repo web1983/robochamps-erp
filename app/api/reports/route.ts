@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, DailyReport } from '@/lib/db';
+import { schoolScopeFilter } from '@/lib/teacherSchoolScope';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -45,8 +46,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use trainer's schoolId if not provided
-    const finalSchoolId = validated.schoolId || (validated.type === 'TRAINER_CLASS' ? schoolId : undefined);
+    const finalSchoolId =
+      validated.schoolId ||
+      (validated.type === 'TRAINER_CLASS' || validated.type === 'TEACHER_TRAINING' ? schoolId : undefined);
 
     const reports = await getCollection<DailyReport>('dailyReports');
     const now = new Date();
@@ -107,27 +109,35 @@ export async function GET(request: NextRequest) {
     const trainerId = searchParams.get('trainerId');
 
     const reports = await getCollection<DailyReport>('dailyReports');
-    const query: any = {};
+    let query: any = {};
 
-    if (type) {
-      query.type = type;
-    }
-
-    // Filter by author based on role
     if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      query.authorId = userId;
-      query.type = 'TRAINER_CLASS';
+      query = { authorId: userId, type: 'TRAINER_CLASS' };
     } else if (role === 'TEACHER') {
-      query.authorId = userId;
-      query.type = 'TEACHER_TRAINING';
-    } else if (trainerId) {
-      query.authorId = trainerId;
-    }
-
-    if (schoolId && role !== 'ADMIN' && role !== 'TEACHER') {
-      query.schoolId = schoolId;
-    } else if (reportSchoolId) {
-      query.schoolId = reportSchoolId;
+      if (!schoolId) {
+        return NextResponse.json({ reports: [] });
+      }
+      const schoolMatch = schoolScopeFilter(schoolId);
+      if (type === 'TEACHER_TRAINING') {
+        query = { authorId: userId, type: 'TEACHER_TRAINING' };
+      } else if (type === 'TRAINER_CLASS') {
+        query = { type: 'TRAINER_CLASS', schoolId: schoolMatch };
+      } else {
+        query = {
+          $or: [
+            { authorId: userId, type: 'TEACHER_TRAINING' },
+            { type: 'TRAINER_CLASS', schoolId: schoolMatch },
+          ],
+        };
+      }
+    } else {
+      if (type) query.type = type;
+      if (trainerId) query.authorId = trainerId;
+      if (schoolId && role !== 'ADMIN') {
+        query.schoolId = schoolId;
+      } else if (reportSchoolId) {
+        query.schoolId = reportSchoolId;
+      }
     }
 
     if (startDate || endDate) {

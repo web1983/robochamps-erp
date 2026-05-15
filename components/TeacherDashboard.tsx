@@ -148,33 +148,51 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
   const schoolId = mode === 'teacher' ? ((session?.user as any)?.schoolId as string | undefined) : undefined;
 
   const [meetings, setMeetings] = useState<MeetingLink[]>([]);
+  /** Trainer class reports at the teacher's school (school + robochamps trainers). */
   const [reports, setReports] = useState<ReportRow[]>([]);
+  /** Teacher's own training reports (follow-ups vs meetings). */
+  const [myTrainingReports, setMyTrainingReports] = useState<ReportRow[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const mapReportRows = (list: any[]) =>
+    list.map((x: any) => ({
+      ...x,
+      datetime: typeof x.datetime === 'string' ? x.datetime : new Date(x.datetime).toISOString(),
+    }));
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [mRes, rRes, aRes] = await Promise.all([
-          fetch('/api/meeting-links'),
-          fetch('/api/reports'),
-          fetch('/api/attendance'),
-        ]);
+        const mRes = await fetch('/api/meeting-links');
+        const aRes = await fetch('/api/attendance');
+
+        let trainerReportsRes: Response;
+        let myReportsRes: Response | null = null;
+        if (mode === 'teacher') {
+          [trainerReportsRes, myReportsRes] = await Promise.all([
+            fetch('/api/reports?type=TRAINER_CLASS'),
+            fetch('/api/reports?type=TEACHER_TRAINING'),
+          ]);
+        } else {
+          trainerReportsRes = await fetch('/api/reports');
+        }
+
         const mJson = mRes.ok ? await mRes.json() : { meetingLinks: [] };
-        const rJson = rRes.ok ? await rRes.json() : { reports: [] };
+        const rJson = trainerReportsRes.ok ? await trainerReportsRes.json() : { reports: [] };
+        const myJson = myReportsRes?.ok ? await myReportsRes.json() : { reports: [] };
         const aJson = aRes.ok ? await aRes.json() : { records: [] };
         if (cancelled) return;
         setMeetings(mJson.meetingLinks || []);
-        setReports(
-          (rJson.reports || []).map((x: any) => ({
-            ...x,
-            datetime: typeof x.datetime === 'string' ? x.datetime : new Date(x.datetime).toISOString(),
-          }))
+        setReports(mapReportRows(rJson.reports || []));
+        setMyTrainingReports(
+          mode === 'teacher' ? mapReportRows(myJson.reports || []) : mapReportRows(rJson.reports || [])
         );
         setAttendance(
           (aJson.records || []).map((x: any) => ({
             ...x,
+            schoolId: x.schoolId?.toString?.() ?? x.schoolId,
             datetime: typeof x.datetime === 'string' ? x.datetime : new Date(x.datetime).toISOString(),
           }))
         );
@@ -185,12 +203,12 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode]);
 
   const filteredAttendance = useMemo(() => {
-    if (!schoolId) return attendance;
+    if (mode !== 'teacher' || !schoolId) return attendance;
     return attendance.filter((a) => a.schoolId === schoolId);
-  }, [attendance, schoolId]);
+  }, [attendance, schoolId, mode]);
 
   const attendancePercent = useMemo(() => {
     const cutoff = startOfDay(subDays(new Date(), 14));
@@ -223,7 +241,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
 
   const sessionsNeedingReport = useMemo(() => {
     const reportDates = new Set(
-      reports.map((r) => format(startOfDay(new Date(r.datetime)), 'yyyy-MM-dd'))
+      myTrainingReports.map((r) => format(startOfDay(new Date(r.datetime)), 'yyyy-MM-dd'))
     );
     let n = 0;
     for (const m of upcomingMeetings) {
@@ -233,7 +251,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
       if (!reportDates.has(key)) n++;
     }
     return n;
-  }, [upcomingMeetings, reports]);
+  }, [upcomingMeetings, myTrainingReports]);
 
   const pendingTasks = Math.min(20, sessionsNeedingReport);
 
@@ -322,16 +340,28 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
     return reports.filter((r) => new Date(r.datetime) >= cutoff).length;
   }, [reports]);
 
+  if (mode === 'teacher' && !loading && !schoolId) {
+    return (
+      <motion.div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-amber-900">
+        <p className="font-semibold">School not assigned</p>
+        <p className="text-sm mt-2">
+          Your account is not linked to a school yet. Ask an admin to assign your school so you only see trainers and
+          data from your campus.
+        </p>
+      </motion.div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div className="space-y-6 animate-pulse">
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-40 rounded-3xl bg-white border border-[#E5E7EB]" />
+            <motion.div key={i} className="h-40 rounded-3xl bg-white border border-[#E5E7EB]" />
           ))}
-        </div>
-        <div className="h-72 rounded-3xl bg-white border border-[#E5E7EB]" />
-      </div>
+        </motion.div>
+        <motion.div className="h-72 rounded-3xl bg-white border border-[#E5E7EB]" />
+      </motion.div>
     );
   }
 
@@ -366,9 +396,9 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
           chart={<MiniBarChart data={[2, 3, 2, 4, 3, 5, upcomingCount]} color="#3B82F6" />}
         />
         <StatsCard
-          title="Submitted reports"
+          title={mode === 'teacher' ? 'Trainer reports' : 'Submitted reports'}
           value={displayReports}
-          change={`${reportsThisMonth} this month`}
+          change={`${reportsThisMonth} this month · your school`}
           changeType="positive"
           delay={0.16}
           icon={
@@ -502,7 +532,9 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-bold text-[#0F172A]">Weekly attendance</h3>
-              <p className="text-sm text-[#6B7280]">Sessions logged per weekday (your scope)</p>
+              <p className="text-sm text-[#6B7280]">
+                {mode === 'teacher' ? 'Trainer sessions at your school' : 'Sessions logged per weekday (your scope)'}
+              </p>
             </div>
           </div>
           <div className="h-64 w-full">
@@ -652,8 +684,18 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {[
-          { label: 'Submitted reports', value: submittedReports, hint: 'All-time training logs', tone: 'from-emerald-500/90 to-emerald-600' },
-          { label: 'Pending reports', value: sessionsNeedingReport, hint: 'Sessions without a same-day log', tone: 'from-amber-500/90 to-amber-600' },
+          {
+            label: mode === 'teacher' ? 'Trainer reports' : 'Submitted reports',
+            value: submittedReports,
+            hint: mode === 'teacher' ? 'Class reports from your school trainers' : 'All-time training logs',
+            tone: 'from-emerald-500/90 to-emerald-600',
+          },
+          {
+            label: 'Your pending logs',
+            value: sessionsNeedingReport,
+            hint: 'Training sessions without your report',
+            tone: 'from-amber-500/90 to-amber-600',
+          },
           { label: 'Approved reports', value: reportsLast30, hint: 'Recent completions (30d)', tone: 'from-blue-500/90 to-blue-600' },
           { label: 'Rejected reports', value: 0, hint: 'Not tracked in this build', tone: 'from-slate-600/90 to-slate-800' },
         ].map((card, i) => (
