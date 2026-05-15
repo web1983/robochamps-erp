@@ -177,7 +177,6 @@ const WHY = [
   'Built for trainers',
   'Real-time attendance proof',
   'Centralized management',
-  'AI-ready analytics',
   'Mobile-first workflow',
 ];
 
@@ -344,16 +343,6 @@ export default function LandingPage() {
                 <GlowButton href="/login" variant="outline">
                   Login
                 </GlowButton>
-                <button
-                  type="button"
-                  onClick={() => scrollTo('analytics')}
-                  className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-[#6B7280] hover:text-emerald-600 transition-colors"
-                >
-                  <span className="w-8 h-8 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center shadow-sm">
-                    ▶
-                  </span>
-                  Watch Demo
-                </button>
               </motion.div>
             </div>
 
@@ -474,7 +463,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-3">Platform Features</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A]">Everything your robotics program needs</h2>
             <p className="mt-4 text-[#6B7280]">
-              An AI-powered ERP for schools, trainers, teachers, and admins — attendance, reports, analytics, and more.
+              An ERP for schools, trainers, teachers, and admins — attendance, reports, analytics, and more.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -765,7 +754,7 @@ export default function LandingPage() {
             Transform Your Robotics Training Operations
           </h2>
           <p className="mt-4 text-emerald-100/70 text-lg max-w-2xl mx-auto">
-            An AI-powered ERP system designed for robotics training programs, schools, trainers, teachers, and admins.
+            An ERP system designed for robotics training programs, schools, trainers, teachers, and admins.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <GlowButton href="/signup" className="!shadow-emerald-500/40">
