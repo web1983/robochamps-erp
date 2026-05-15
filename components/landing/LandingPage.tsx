@@ -17,6 +17,7 @@ import {
   YAxis,
 } from 'recharts';
 import MiniBarChart from '@/components/MiniBarChart';
+import PlatformShowcaseSlide, { type ShowcaseVariant } from '@/components/landing/PlatformShowcaseSlide';
 
 const C = {
   primary: '#22C55E',
@@ -164,12 +165,12 @@ const WORKFLOW = [
   { step: '05', title: 'Generate Insights', desc: 'Trends, exports, and audit-ready records.' },
 ];
 
-const SCREENSHOTS = [
-  { label: 'Admin Dashboard', gradient: 'from-[#0B1F14] to-[#143A28]' },
-  { label: 'Teacher Dashboard', gradient: 'from-emerald-600/20 to-[#F4F7F5]' },
-  { label: 'Trainer Dashboard', gradient: 'from-[#07130D] to-[#0B1F14]' },
-  { label: 'Attendance', gradient: 'from-emerald-500/30 to-white' },
-  { label: 'Analytics', gradient: 'from-[#0F172A] to-emerald-900/40' },
+const SCREENSHOTS: { label: string; variant: ShowcaseVariant; description: string }[] = [
+  { label: 'Admin Dashboard', variant: 'admin', description: 'Schools, users, and global analytics in one view.' },
+  { label: 'Teacher Dashboard', variant: 'teacher', description: 'Meetings, attendance, and class progress for your school.' },
+  { label: 'Trainer Dashboard', variant: 'trainer', description: 'Mark attendance, submit reports, and track sessions on the go.' },
+  { label: 'Attendance', variant: 'attendance', description: 'Photo and location proof for every training session.' },
+  { label: 'Analytics', variant: 'analytics', description: 'Trends, charts, and operational KPIs at a glance.' },
 ];
 
 const WHY = [
@@ -652,46 +653,80 @@ export default function LandingPage() {
         </div>
       </Section>
 
-      {/* Screenshots carousel */}
-      <Section className="py-20 lg:py-28">
+      {/* Platform showcase */}
+      <Section className="py-20 lg:py-28 bg-white/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-3">Product tour</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A]">See the platform in action</h2>
+            <p className="mt-4 text-[#6B7280]">
+              Explore admin, teacher, and trainer workspaces — the same premium UI you get after signing in.
+            </p>
           </div>
-          <div className="relative rounded-3xl border border-[#E5E7EB] bg-white p-4 sm:p-6 shadow-xl overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={slide}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.4 }}
-                className={`aspect-[16/9] rounded-2xl bg-gradient-to-br ${SCREENSHOTS[slide].gradient} flex items-center justify-center`}
+
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {SCREENSHOTS.map((s, i) => (
+              <button
+                key={s.variant}
+                type="button"
+                onClick={() => setSlide(i)}
+                className={`rounded-2xl px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all ${
+                  i === slide
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                    : 'bg-white border border-[#E5E7EB] text-[#6B7280] hover:border-emerald-300'
+                }`}
               >
-                <div className="text-center p-8">
-                  <p className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">{SCREENSHOTS[slide].label}</p>
-                  <p className="text-white/70 text-sm mt-2">Robochamps ERP · Premium Analytics UI</p>
-                  <div className="mt-6 grid grid-cols-3 gap-2 max-w-md mx-auto">
-                    {[1, 2, 3].map((n) => (
-                      <div key={n} className="h-16 rounded-xl bg-white/10 backdrop-blur border border-white/20" />
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            <div className="flex justify-center gap-2 mt-4">
-              {SCREENSHOTS.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSlide(i)}
-                  className={`h-2 rounded-full transition-all ${i === slide ? 'w-8 bg-emerald-500' : 'w-2 bg-[#E5E7EB]'}`}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setSlide((s) => (s - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-2 sm:-translate-x-4 w-10 h-10 rounded-full border border-[#E5E7EB] bg-white shadow-lg text-[#0F172A] hover:bg-[#F4F7F5] hidden sm:flex items-center justify-center text-xl"
+              aria-label="Previous slide"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => setSlide((s) => (s + 1) % SCREENSHOTS.length)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-2 sm:translate-x-4 w-10 h-10 rounded-full border border-[#E5E7EB] bg-white shadow-lg text-[#0F172A] hover:bg-[#F4F7F5] hidden sm:flex items-center justify-center text-xl"
+              aria-label="Next slide"
+            >
+              ›
+            </button>
+
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white/90 backdrop-blur-md p-4 sm:p-6 shadow-xl shadow-emerald-500/5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={slide}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <p className="text-center text-sm text-[#6B7280] mb-4">{SCREENSHOTS[slide].description}</p>
+                  <PlatformShowcaseSlide variant={SCREENSHOTS[slide].variant} />
+                </motion.div>
+              </AnimatePresence>
+              <div className="flex justify-center gap-2 mt-5">
+                {SCREENSHOTS.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSlide(i)}
+                    className={`h-2 rounded-full transition-all ${i === slide ? 'w-8 bg-emerald-500' : 'w-2 bg-[#E5E7EB]'}`}
+                    aria-label={`Go to ${SCREENSHOTS[i].label}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
+
+          <div className="flex flex-wrap justify-center gap-3 mt-10">
             <GlowButton href="/signup">Get Started</GlowButton>
             <GlowButton href="/login" variant="outline">
               Login
