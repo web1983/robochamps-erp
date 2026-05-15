@@ -22,6 +22,20 @@ export default withAuth(
       return NextResponse.redirect(new URL('/trainer/dashboard', req.url));
     }
 
+    // Teachers use the user workspace; block admin-only ERP modules
+    if (path.startsWith('/dashboard') && role === 'TEACHER') {
+      const adminOnlyPrefixes = [
+        '/dashboard/users',
+        '/dashboard/schools',
+        '/dashboard/combined-records',
+        '/dashboard/uploaded-sheets',
+        '/dashboard/late-upload-requests',
+      ];
+      if (adminOnlyPrefixes.some((p) => path === p || path.startsWith(`${p}/`))) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+    }
+
     return NextResponse.next();
   },
   {

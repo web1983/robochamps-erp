@@ -7,15 +7,13 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-function DashboardHeaderBar({
+function TrainerHeaderBar({
   userName,
   userRole,
-  isTeacher,
   onOpenMobileSidebar,
 }: {
   userName: string;
   userRole: string;
-  isTeacher: boolean;
   onOpenMobileSidebar: () => void;
 }) {
   const { navFilter, setNavFilter } = useDashboardSearch();
@@ -49,15 +47,16 @@ function DashboardHeaderBar({
                 {greeting}, {firstName}
               </h1>
               <p className="text-sm text-[#6B7280] mt-0.5">
-                {isTeacher
-                  ? "Here's your activity overview for today."
-                  : "Here's what's happening with your batches today."}
+                Here&apos;s your activity overview for today.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <button className="relative p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-[#E5E7EB]">
+            <button
+              type="button"
+              className="relative p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-[#E5E7EB]"
+            >
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path
                   strokeLinecap="round"
@@ -119,7 +118,7 @@ function DashboardHeaderBar({
   );
 }
 
-function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
+function TrainerLayoutInner({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -127,8 +126,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
+      return;
     }
-  }, [status, router]);
+    if (status === 'authenticated') {
+      const role = (session?.user as any)?.role;
+      if (role !== 'TRAINER_ROBOCHAMPS' && role !== 'TRAINER_SCHOOL') {
+        router.push('/dashboard');
+      }
+    }
+  }, [status, session, router]);
 
   if (status === 'loading') {
     return (
@@ -143,32 +149,28 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   if (!session) return null;
 
-  const userName = (session.user as any)?.name || 'User';
-  const userRole = (session.user as any)?.role || 'ADMIN';
-  const isTeacher = userRole === 'TEACHER';
+  const userName = (session.user as any)?.name || 'Trainer';
+  const userRole = (session.user as any)?.role || 'TRAINER';
 
   return (
     <div className="min-h-screen" style={{ background: '#F4F7F5' }}>
       <DashboardSidebar isMobileOpen={mobileSidebarOpen} onMobileClose={() => setMobileSidebarOpen(false)} />
-
       <div className="lg:ml-64 min-h-screen flex flex-col">
-        <DashboardHeaderBar
+        <TrainerHeaderBar
           userName={userName}
           userRole={userRole}
-          isTeacher={isTeacher}
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
         />
-
         <main className="flex-1 p-4 sm:p-8">{children}</main>
       </div>
     </div>
   );
 }
 
-export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
+export default function TrainerRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <DashboardSearchProvider>
-      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      <TrainerLayoutInner>{children}</TrainerLayoutInner>
     </DashboardSearchProvider>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import DashboardHeader from '@/components/DashboardHeader';
+import PageBackLink from '@/components/PageBackLink';
 import { format } from 'date-fns';
 
 interface CombinedRecord {
@@ -344,7 +344,6 @@ function TrainerCombinedSheetContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-        <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-gray-500">Loading...</p>
         </div>
@@ -354,7 +353,6 @@ function TrainerCombinedSheetContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -768,14 +766,7 @@ function TrainerCombinedSheetContent() {
 export default function TrainerCombinedSheetPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-          <DashboardHeader showBackButton backHref="/trainer/dashboard" role="TRAINER_SCHOOL" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <p className="text-gray-500">Loading...</p>
-          </div>
-        </div>
-      }
+      fallback={<div className="h-48 rounded-3xl bg-white border border-[#E5E7EB] animate-pulse" />}
     >
       <TrainerCombinedSheetContent />
     </Suspense>

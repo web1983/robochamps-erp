@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+import { useDashboardSearch } from '@/contexts/DashboardSearchContext';
 
 interface NavItem {
   label: string;
@@ -95,102 +96,263 @@ const adminNavItems: NavItem[] = [
   },
 ];
 
-export default function DashboardSidebar() {
-  const pathname = usePathname();
-  const [searchQuery, setSearchQuery] = useState('');
+const trainerNavItems: NavItem[] = [
+  {
+    label: 'Dashboard',
+    href: '/trainer/dashboard',
+    icon: adminNavItems[0].icon,
+  },
+  {
+    label: 'Attendance',
+    href: '/trainer/attendance',
+    icon: adminNavItems[1].icon,
+  },
+  {
+    label: 'Meeting Links',
+    href: '/trainer/meeting-links',
+    icon: adminNavItems[2].icon,
+  },
+  {
+    label: 'Reports',
+    href: '/trainer/reports',
+    icon: adminNavItems[3].icon,
+  },
+  {
+    label: 'Assignments',
+    href: '/trainer/combined-sheet',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655-5.653a2.548 2.548 0 010-3.286L11.42 15.17z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Performance',
+    href: '/trainer/performance',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v4.125c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 17.25v-4.125zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-8.25zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Notifications',
+    href: '/trainer/notifications',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Settings',
+    href: '/trainer/settings',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.008 2.748c.35.96.05 2.015-.69 2.665l-.748.747a1.125 1.125 0 01-1.154.243 9.42 9.42 0 00-1.153-.243l-.091.091a1.125 1.125 0 01-1.154.243 9.42 9.42 0 00-1.153-.243l-.091.091c-.317.196-.686.257-1.075.124l-1.217-.456a1.125 1.125 0 01-1.37-.49l-.213-1.281z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+];
 
-  const filteredItems = adminNavItems.filter((item) =>
-    item.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+const teacherNavItems: NavItem[] = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: adminNavItems[0].icon,
+  },
+  {
+    label: 'Attendance',
+    href: '/dashboard/attendance',
+    icon: adminNavItems[1].icon,
+  },
+  {
+    label: 'Meeting Links',
+    href: '/dashboard/meeting-links',
+    icon: adminNavItems[2].icon,
+  },
+  {
+    label: 'Reports',
+    href: '/dashboard/reports',
+    icon: adminNavItems[3].icon,
+  },
+  {
+    label: 'Assignments',
+    href: '/dashboard/assignments',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655-5.653a2.548 2.548 0 010-3.286L11.42 15.17z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Performance',
+    href: '/dashboard/performance',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v4.125c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 17.25v-4.125zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-8.25zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Notifications',
+    href: '/dashboard/notifications',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Settings',
+    href: '/dashboard/settings',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.008 2.748c.35.96.05 2.015-.69 2.665l-.748.747a1.125 1.125 0 01-1.154.243 9.42 9.42 0 00-1.153-.243l-.091.091a1.125 1.125 0 01-1.154.243 9.42 9.42 0 00-1.153-.243l-.091.091c-.317.196-.686.257-1.075.124l-1.217-.456a1.125 1.125 0 01-1.37-.49l-.213-1.281z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+];
+
+type DashboardSidebarProps = {
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+};
+
+export default function DashboardSidebar({ isMobileOpen = false, onMobileClose }: DashboardSidebarProps) {
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const { navFilter, setNavFilter } = useDashboardSearch();
+
+  const role = (session?.user as any)?.role as string | undefined;
+  const isTrainerRoute = pathname.startsWith('/trainer');
+  const isTeacher = !isTrainerRoute && role === 'TEACHER';
+  const isTrainer =
+    isTrainerRoute || role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL';
+
+  const baseItems = isTrainer ? trainerNavItems : isTeacher ? teacherNavItems : adminNavItems;
+  const layoutIndicatorId = isTrainer
+    ? 'activeIndicatorTrainer'
+    : isTeacher
+      ? 'activeIndicatorTeacher'
+      : 'activeIndicatorAdmin';
+  const homeHref = isTrainer ? '/trainer/dashboard' : '/dashboard';
+
+  const filteredItems = baseItems.filter((item) => item.label.toLowerCase().includes(navFilter.toLowerCase()));
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/dashboard' || href === '/trainer/dashboard') {
+      return pathname === href;
+    }
+    if (href === '/trainer/attendance') {
+      return pathname.startsWith('/trainer/attendance');
+    }
     return pathname.startsWith(href);
   };
 
+  const userName = session?.user?.name || 'User';
+  const userRole = role || 'USER';
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 z-40 flex flex-col" style={{ background: 'linear-gradient(180deg, #07130D 0%, #0B1F14 100%)' }}>
-      {/* Logo */}
-      <div className="px-6 pt-6 pb-4">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    <>
+      <div
+        className={`fixed inset-0 z-30 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden ${
+          isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!isMobileOpen}
+        onClick={onMobileClose}
+      />
+
+      <aside
+        className={`fixed left-0 top-0 z-40 flex h-screen w-64 flex-col transition-transform duration-300 ease-out lg:translate-x-0 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+        style={{ background: 'linear-gradient(180deg, #07130D 0%, #0B1F14 100%)' }}
+      >
+        <div className="px-6 pt-6 pb-4">
+          <Link href={homeHref} className="flex items-center gap-3" onClick={onMobileClose}>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm tracking-wide">RoboChamps</p>
+              <p className="text-emerald-400/60 text-[10px] font-medium">ERP System</p>
+            </div>
+          </Link>
+        </div>
+
+        <div className="px-4 mb-4">
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-          </div>
-          <div>
-            <p className="text-white font-bold text-sm tracking-wide">RoboChamps</p>
-            <p className="text-emerald-400/60 text-[10px] font-medium">ERP System</p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Search */}
-      <div className="px-4 mb-4">
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 overflow-y-auto scrollbar-thin">
-        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Navigation</p>
-        <ul className="space-y-1">
-          {filteredItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <li key={item.href}>
-                <Link href={item.href}>
-                  <motion.div
-                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? 'bg-emerald-500/15 text-emerald-400'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                    whileHover={{ x: 4 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  >
-                    {active && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-emerald-400 rounded-full"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    <span className={active ? 'text-emerald-400' : ''}>{item.icon}</span>
-                    <span>{item.label}</span>
-                    {active && (
-                      <div className="absolute inset-0 rounded-xl bg-emerald-400/5 blur-sm" />
-                    )}
-                  </motion.div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* User section */}
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
-            A
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Admin</p>
-            <p className="text-[11px] text-gray-500 truncate">Administrator</p>
+            <input
+              type="text"
+              placeholder="Filter navigation..."
+              value={navFilter}
+              onChange={(e) => setNavFilter(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+            />
           </div>
         </div>
-      </div>
-    </aside>
+
+        <nav className="flex-1 px-3 overflow-y-auto scrollbar-thin">
+          <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Navigation</p>
+          <ul className="space-y-1">
+            {filteredItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <li key={item.href}>
+                  <Link href={item.href} onClick={onMobileClose}>
+                    <motion.div
+                      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        active ? 'bg-emerald-500/15 text-emerald-400' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                      whileHover={{ x: 4 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    >
+                      {active && (
+                        <motion.div
+                          layoutId={layoutIndicatorId}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-emerald-400 rounded-full"
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                      <span className={active ? 'text-emerald-400' : ''}>{item.icon}</span>
+                      <span>{item.label}</span>
+                      {active && <div className="absolute inset-0 rounded-xl bg-emerald-400/5 blur-sm" />}
+                    </motion.div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{userName}</p>
+              <p className="text-[11px] text-gray-500 truncate">{userRole.replace(/_/g, ' ')}</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

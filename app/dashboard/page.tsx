@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import StatsCard from '@/components/StatsCard';
 import MiniBarChart from '@/components/MiniBarChart';
 import QuickActionButton from '@/components/QuickActionButton';
+import TeacherDashboard from '@/components/TeacherDashboard';
 
 interface DashboardStats {
   totalUsers: number;
@@ -64,6 +65,10 @@ function DashboardContent() {
   };
 
   const role = (session?.user as any)?.role;
+
+  if (role === 'TEACHER') {
+    return <TeacherDashboard />;
+  }
 
   return (
     <>
