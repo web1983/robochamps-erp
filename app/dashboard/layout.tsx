@@ -6,6 +6,7 @@ import { DashboardSearchProvider, useDashboardSearch } from '@/contexts/Dashboar
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { formatRoleLabel } from '@/lib/roleLabels';
 
 function DashboardHeaderBar({
   userName,
@@ -70,12 +71,12 @@ function DashboardHeaderBar({
               </span>
             </button>
 
-            <div className="hidden sm:flex items-center gap-3 pl-3 sm:pl-4 border-l border-[#E5E7EB]">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-[#0F172A] truncate max-w-[140px]">{userName}</p>
-                <p className="text-[11px] text-[#6B7280]">{userRole.replace(/_/g, ' ')}</p>
+            <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-[#E5E7EB]">
+              <div className="text-right min-w-0">
+                <p className="text-sm font-semibold text-[#0F172A] truncate max-w-[100px] sm:max-w-[140px]">{userName}</p>
+                <p className="text-[11px] text-[#6B7280]">{formatRoleLabel(userRole)}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-500/20">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-500/20 shrink-0">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <button
