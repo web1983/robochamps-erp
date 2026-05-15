@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import UploadedSheetActions from '@/components/UploadedSheetActions';
 
 interface UploadedSheet {
   _id: string;
@@ -51,7 +52,7 @@ export default function UploadedSheetsPage() {
 
     if (status === 'authenticated') {
       const role = (session?.user as any)?.role;
-      if (role !== 'ADMIN') {
+      if (role !== 'ADMIN' && role !== 'TEACHER') {
         router.push('/dashboard');
         return;
       }
@@ -135,15 +136,21 @@ export default function UploadedSheetsPage() {
   }
 
   const role = (session?.user as any)?.role;
-  if (role !== 'ADMIN') {
+  if (role !== 'ADMIN' && role !== 'TEACHER') {
     return null;
   }
+
+  const isAdmin = role === 'ADMIN';
 
   return (
     <div className="font-sans text-gray-900">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Uploaded Signed Sheets</h1>
-          <p className="text-gray-500">View and filter all uploaded combined sheets by trainers</p>
+          <p className="text-gray-500">
+            {isAdmin
+              ? 'View, preview, and download uploaded combined sheets (XLS) from all trainers'
+              : 'View and download combined sheets uploaded by trainers at your school'}
+          </p>
         </div>
 
         {error && (
@@ -156,23 +163,25 @@ export default function UploadedSheetsPage() {
         <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                School Name
-              </label>
-              <select
-                value={filters.schoolName}
-                onChange={(e) => handleFilterChange('schoolName', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
-              >
-                <option value="">All Schools</option>
-                {schools.map((school) => (
-                  <option key={school._id} value={school.name}>
-                    {school.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {isAdmin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  School Name
+                </label>
+                <select
+                  value={filters.schoolName}
+                  onChange={(e) => handleFilterChange('schoolName', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 bg-white"
+                >
+                  <option value="">All Schools</option>
+                  {schools.map((school) => (
+                    <option key={school._id} value={school.name}>
+                      {school.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -306,14 +315,7 @@ export default function UploadedSheetsPage() {
                         {formatFileSize(sheet.fileSize)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <a
-                          href={sheet.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
-                        >
-                          View / Download
-                        </a>
+                        <UploadedSheetActions sheetId={sheet._id} fileName={sheet.fileName} />
                       </td>
                     </tr>
                   ))}
