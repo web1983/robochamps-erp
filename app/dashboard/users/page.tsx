@@ -198,13 +198,20 @@ export default function UsersPage() {
     setEditingUserId(user._id);
     setEditFormData({
       role: user.role as any,
-      schoolId: user.schoolId || '',
+      schoolId: user.schoolId ? String(user.schoolId) : '',
     });
     setError('');
   };
 
   const handleUpdateUser = async () => {
     if (!editingUserId) return;
+
+    const schoolIdTrimmed = editFormData.schoolId.trim();
+
+    if (roleNeedsSchool(editFormData.role) && !schoolIdTrimmed) {
+      setError('Please select a school for this role.');
+      return;
+    }
 
     setError('');
     setSubmitting(true);
@@ -215,7 +222,7 @@ export default function UsersPage() {
       };
 
       if (roleNeedsSchool(editFormData.role)) {
-        payload.schoolId = editFormData.schoolId || null;
+        payload.schoolId = schoolIdTrimmed;
       } else {
         payload.schoolId = null;
       }

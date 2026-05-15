@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { getCollection, User, School } from '@/lib/db';
+import { getCollection, User } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
+import { findSchoolById, normalizeSchoolId } from '@/lib/teacherSchoolScope';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -155,31 +156,40 @@ export async function PUT(
       );
     }
 
-    // Validate school if provided
-    let schoolId: string | undefined | null = validated.schoolId;
-    if (schoolId !== undefined && schoolId !== null && schoolId !== '') {
-      const schools = await getCollection<School>('schools');
-      const school = await schools.findOne({
-        _id: new ObjectId(schoolId) as any,
-      });
+    const effectiveRole = validated.role ?? user.role;
+    const needsSchool =
+      effectiveRole === 'TEACHER' ||
+      effectiveRole === 'TRAINER_ROBOCHAMPS' ||
+      effectiveRole === 'TRAINER_SCHOOL';
 
-      if (!school) {
-        return NextResponse.json(
-          { error: 'School not found' },
-          { status: 400 }
-        );
+    const existingSchoolId = normalizeSchoolId(user.schoolId);
+    const incomingSchoolId =
+      validated.schoolId !== undefined ? normalizeSchoolId(validated.schoolId) : undefined;
+
+    let resolvedSchoolId: string | null = existingSchoolId;
+
+    if (incomingSchoolId !== undefined) {
+      if (!incomingSchoolId) {
+        if (needsSchool) {
+          return NextResponse.json({ error: 'Please select a school for this role' }, { status: 400 });
+        }
+        resolvedSchoolId = null;
+      } else {
+        const school = await findSchoolById(incomingSchoolId);
+        if (!school) {
+          return NextResponse.json({ error: 'School not found. Refresh and try again.' }, { status: 400 });
+        }
+        resolvedSchoolId = normalizeSchoolId(school._id) ?? incomingSchoolId;
       }
-      schoolId = school._id?.toString() || schoolId;
-    } else if (schoolId === '') {
-      schoolId = null;
     }
 
-    // Build update object
+    if (needsSchool && !resolvedSchoolId) {
+      return NextResponse.json({ error: 'Please select a school for this role' }, { status: 400 });
+    }
+
     const updateData: any = {
       updatedAt: new Date(),
     };
-
-    const effectiveRole = validated.role ?? user.role;
 
     if (validated.role) {
       updateData.role = validated.role;
@@ -192,17 +202,10 @@ export async function PUT(
       }
     }
 
-    if (schoolId !== undefined) {
-      updateData.schoolId = schoolId || null;
-    }
-
-    const needsSchool =
-      effectiveRole === 'TEACHER' ||
-      effectiveRole === 'TRAINER_ROBOCHAMPS' ||
-      effectiveRole === 'TRAINER_SCHOOL';
-    const resolvedSchoolId = updateData.schoolId !== undefined ? updateData.schoolId : user.schoolId;
-    if (needsSchool && !resolvedSchoolId) {
-      return NextResponse.json({ error: 'School is required for this role' }, { status: 400 });
+    if (!needsSchool) {
+      updateData.schoolId = null;
+    } else {
+      updateData.schoolId = resolvedSchoolId;
     }
 
     if (validated.newPassword) {
