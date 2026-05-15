@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import PageBackLink from '@/components/PageBackLink';
 import { format } from 'date-fns';
-import UploadedSheetActions from '@/components/UploadedSheetActions';
 
 interface CombinedRecord {
   date: string;
@@ -590,7 +589,14 @@ function TrainerCombinedSheetContent() {
                       {sheet.fileName} • {format(new Date(sheet.uploadedAt), 'PPp')}
                     </p>
                   </div>
-                  <UploadedSheetActions sheetId={sheet._id} fileName={sheet.fileName} />
+                  <a
+                    href={sheet.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors font-semibold text-sm"
+                  >
+                    View / Download
+                  </a>
                 </div>
               ))}
             </div>

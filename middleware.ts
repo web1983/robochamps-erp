@@ -17,11 +17,9 @@ export default withAuth(
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // Protect admin/teacher routes (trainers may view/download uploaded sheets)
+    // Protect admin/teacher routes
     if (path.startsWith('/dashboard') && (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL')) {
-      if (!path.startsWith('/dashboard/uploaded-sheets')) {
-        return NextResponse.redirect(new URL('/trainer/dashboard', req.url));
-      }
+      return NextResponse.redirect(new URL('/trainer/dashboard', req.url));
     }
 
     // Teachers use the user workspace; block admin-only ERP modules
@@ -30,6 +28,7 @@ export default withAuth(
         '/dashboard/users',
         '/dashboard/schools',
         '/dashboard/combined-records',
+        '/dashboard/uploaded-sheets',
         '/dashboard/late-upload-requests',
       ];
       if (adminOnlyPrefixes.some((p) => path === p || path.startsWith(`${p}/`))) {
