@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { downloadCombinedRecordsPdf } from '@/lib/combinedRecordsPdf';
 
 interface CombinedRecord {
   date: string;
@@ -171,9 +172,16 @@ export default function CombinedRecordsPage() {
   };
 
   const generateExcel = () => {
-    // For Excel, we'll generate CSV with .xls extension (works in Excel)
-    // Or we can use a library, but CSV works fine
     generateCSV();
+  };
+
+  const generatePDF = () => {
+    if (records.length === 0) return;
+    downloadCombinedRecordsPdf(records, {
+      title: 'Combined Attendance & Reports',
+      startDate,
+      endDate,
+    });
   };
 
   if (loading) {
@@ -190,6 +198,13 @@ export default function CombinedRecordsPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Combined Attendance & Reports</h1>
           <div className="flex space-x-3">
+            <button
+              onClick={generatePDF}
+              disabled={records.length === 0}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              📄 Export PDF
+            </button>
             <button
               onClick={generateCSV}
               disabled={records.length === 0}

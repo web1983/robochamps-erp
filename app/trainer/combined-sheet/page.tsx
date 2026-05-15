@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import PageBackLink from '@/components/PageBackLink';
 import { format } from 'date-fns';
+import { downloadCombinedRecordsPdf } from '@/lib/combinedRecordsPdf';
 
 interface CombinedRecord {
   date: string;
@@ -337,8 +338,20 @@ function TrainerCombinedSheetContent() {
   };
 
   const generateExcel = () => {
-    // For Excel, we'll generate CSV with .xls extension (works in Excel)
     generateCSV();
+  };
+
+  const generatePDF = () => {
+    if (records.length === 0) {
+      alert('No records to export');
+      return;
+    }
+    downloadCombinedRecordsPdf(records, {
+      title: 'Combined Attendance & Reports',
+      filename: `combined-sheet-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+      startDate,
+      endDate,
+    });
   };
 
   if (loading) {
@@ -365,6 +378,13 @@ function TrainerCombinedSheetContent() {
               className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-semibold"
             >
               {showUploadForm ? 'Cancel Upload' : '📤 Upload Signed Sheet'}
+            </button>
+            <button
+              onClick={generatePDF}
+              disabled={records.length === 0}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              📄 Download PDF
             </button>
             <button
               onClick={generateCSV}
