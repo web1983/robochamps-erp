@@ -46,11 +46,11 @@ export default function Navbar() {
       <Link href="/trainer/dashboard" className={`block px-4 py-3 rounded-lg transition-all font-medium ${pathname === '/trainer/dashboard' ? 'bg-white text-gray-900 font-semibold shadow-lg' : 'hover:bg-white/10 text-white'}`}>
         Dashboard
       </Link>
-      <Link href="/trainer/attendance" className={`block px-4 py-3 rounded-lg transition-all font-medium ${pathname === '/trainer/attendance' ? 'bg-white text-gray-900 font-semibold shadow-lg' : 'hover:bg-white/10 text-white'}`}>
-        Mark Attendance
+      <Link href="/trainer/attendance" className={`block px-4 py-3 rounded-lg transition-all font-medium ${pathname.startsWith('/trainer/attendance') ? 'bg-white text-gray-900 font-semibold shadow-lg' : 'hover:bg-white/10 text-white'}`}>
+        Log Class
       </Link>
       <Link href="/trainer/reports" className={`block px-4 py-3 rounded-lg transition-all font-medium ${pathname === '/trainer/reports' ? 'bg-white text-gray-900 font-semibold shadow-lg' : 'hover:bg-white/10 text-white'}`}>
-        My Reports
+        Session History
       </Link>
     </>
   );

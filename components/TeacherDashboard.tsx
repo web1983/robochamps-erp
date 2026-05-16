@@ -133,7 +133,7 @@ const ROUTES = {
     meetingLinks: '/trainer/meeting-links',
     performance: '/trainer/performance',
     reports: '/trainer/reports',
-    upload: '/trainer/reports/new',
+    upload: '/trainer/combined-sheet',
   },
 } as const;
 
@@ -705,7 +705,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
         <h3 className="text-lg font-bold text-[#0F172A] mb-4">Quick actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <QuickActionButton
-            label="Mark attendance"
+            label={mode === 'teacher' ? 'Mark attendance' : 'Log class session'}
             href={routes.attendance}
             delay={0.1}
             color="emerald"
@@ -717,7 +717,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
           />
           {mode !== 'teacher' && (
             <QuickActionButton
-              label="Upload assignment"
+              label="Combined sheet"
               href={routes.upload}
               delay={0.15}
               color="blue"
@@ -740,7 +740,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
             }
           />
           <QuickActionButton
-            label={mode === 'teacher' ? 'View reports' : 'Submit report'}
+            label={mode === 'teacher' ? 'View reports' : 'Session history'}
             href={routes.reports}
             delay={mode === 'teacher' ? 0.2 : 0.25}
             color="amber"

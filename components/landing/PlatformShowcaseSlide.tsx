@@ -136,7 +136,7 @@ function TrainerPreview() {
         <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3 shadow-sm">
           <p className="text-[10px] font-semibold text-[#0F172A]">Quick actions</p>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            {['Mark Attendance', 'Submit Report', 'View PPT', 'Combined Sheet'].map((a) => (
+            {['Log Class', 'Session History', 'View PPT', 'Combined Sheet'].map((a) => (
               <span
                 key={a}
                 className="text-[9px] sm:text-[10px] text-center py-2 px-1 rounded-xl bg-[#F4F7F5] border border-[#E5E7EB] text-[#374151] font-medium"

@@ -57,14 +57,14 @@ function TrainerReportsContent() {
       <PageBackLink href="/trainer/dashboard" />
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0F172A]">My Reports</h1>
-          <p className="text-[#6B7280] mt-1">Session logs submitted from your training sessions.</p>
+          <h1 className="text-2xl font-bold text-[#0F172A]">Session history</h1>
+          <p className="text-[#6B7280] mt-1">Past class reports. Log a new session with attendance and report together.</p>
         </div>
         <Link
-          href="/trainer/reports/new"
+          href="/trainer/attendance"
           className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 hover:opacity-90 transition-opacity"
         >
-          + New Report
+          + Log class session
         </Link>
       </motion.div>
 
@@ -75,8 +75,8 @@ function TrainerReportsContent() {
       {reports.length === 0 ? (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-[#E5E7EB] bg-white p-10 text-center shadow-sm">
           <p className="text-[#6B7280] mb-4">No reports found.</p>
-          <Link href="/trainer/reports/new" className="text-emerald-600 hover:text-emerald-700 text-sm font-semibold hover:underline">
-            Create your first report
+          <Link href="/trainer/attendance" className="text-emerald-600 hover:text-emerald-700 text-sm font-semibold hover:underline">
+            Log your first class session
           </Link>
         </motion.div>
       ) : (

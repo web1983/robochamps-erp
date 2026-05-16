@@ -104,7 +104,7 @@ const trainerNavItems: NavItem[] = [
     icon: adminNavItems[0].icon,
   },
   {
-    label: 'Attendance',
+    label: 'Log Class',
     href: '/trainer/attendance',
     icon: adminNavItems[1].icon,
   },
@@ -114,7 +114,7 @@ const trainerNavItems: NavItem[] = [
     icon: adminNavItems[2].icon,
   },
   {
-    label: 'Reports',
+    label: 'Session History',
     href: '/trainer/reports',
     icon: adminNavItems[3].icon,
   },
@@ -256,7 +256,7 @@ export default function DashboardSidebar({ isMobileOpen = false, onMobileClose }
       return pathname === href;
     }
     if (href === '/trainer/attendance') {
-      return pathname.startsWith('/trainer/attendance');
+      return pathname.startsWith('/trainer/attendance') || pathname === '/trainer/reports/new';
     }
     return pathname.startsWith(href);
   };
