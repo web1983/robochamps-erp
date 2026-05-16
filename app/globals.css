@@ -27,21 +27,24 @@ body {
   }
 }
 
-/* Premium dark theme styling */
+/* Form fields: dark text on light surfaces (body text is light-on-dark for legacy theme) */
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
 input[type="date"],
 input[type="datetime-local"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
 select,
 textarea {
-  color: inherit;
+  color: #0f172a;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: #9ca3af;
 }
 
 /* Glassmorphism effect */

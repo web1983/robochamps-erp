@@ -95,7 +95,7 @@ export default function MarkAttendancePage() {
             value={classLabel}
             onChange={(e) => setClassLabel(e.target.value)}
             placeholder="e.g., Grade 6-A, Robotics Class 1"
-            className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-emerald-400 [color-scheme:light]"
           />
         </div>
 
