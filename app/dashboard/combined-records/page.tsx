@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { downloadCombinedRecordsPdf } from '@/lib/combinedRecordsPdf';
+import { downloadCsvFile, downloadExcelCompatibleFile } from '@/lib/combinedRecordsExport';
 
 interface CombinedRecord {
   date: string;
@@ -91,73 +92,51 @@ export default function CombinedRecordsPage() {
     }
   };
 
-  const escapeCSV = (str: string): string => {
-    if (!str) return '';
-    // Escape quotes and wrap in quotes if contains comma, quote, or newline
-    const escaped = str.replace(/"/g, '""');
-    if (escaped.includes(',') || escaped.includes('"') || escaped.includes('\n')) {
-      return `"${escaped}"`;
-    }
-    return escaped;
-  };
-
-  const generateCSV = () => {
-    // Headers
+  const buildExportRows = () => {
     const headers = [
       'Date & Time',
       'Trainer',
       'School',
-      'Attendance',
+      'Class',
       'Image URL',
       'Topics',
       'Summary',
-      'Notes'
+      'Notes',
     ];
 
-    // Flatten records - create one row per report, or one row if only attendance exists
-    const rows: string[][] = [];
-
-    records.forEach((record) => {
+    const rows = records.map((record) => {
       const report = record.reports[0];
       const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
       const dateTime = format(new Date(sessionWhen), 'PPp');
       const trainer = `${record.trainerName} (${record.trainerEmail})`;
-      const school = record.schoolName;
       const classLabel = report?.classLabel || record.attendance?.classLabel || '';
-      const imageUrl = record.attendance?.photoUrl || '';
+      const imageUrl = record.attendance?.photoUrl?.trim() || '';
 
-      rows.push([
+      return [
         dateTime,
         trainer,
-        school,
+        record.schoolName,
         classLabel,
         imageUrl,
         report?.topics || '',
         report?.summary || '',
         report?.notes || '',
-      ]);
+      ];
     });
 
-    // Convert to CSV format
-    const csvContent = [
-      headers.map(escapeCSV).join(','),
-      ...rows.map(row => row.map(escapeCSV).join(','))
-    ].join('\n');
+    return { headers, rows };
+  };
 
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `combined-records-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const generateCSV = () => {
+    if (records.length === 0) return;
+    const { headers, rows } = buildExportRows();
+    downloadCsvFile(`combined-records-${format(new Date(), 'yyyy-MM-dd')}.csv`, headers, rows);
   };
 
   const generateExcel = () => {
-    generateCSV();
+    if (records.length === 0) return;
+    const { headers, rows } = buildExportRows();
+    downloadExcelCompatibleFile(`combined-records-${format(new Date(), 'yyyy-MM-dd')}.xls`, headers, rows);
   };
 
   const generatePDF = () => {

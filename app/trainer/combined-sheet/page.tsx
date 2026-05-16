@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import PageBackLink from '@/components/PageBackLink';
 import { format } from 'date-fns';
 import { downloadCombinedRecordsPdf } from '@/lib/combinedRecordsPdf';
+import { downloadCsvFile, downloadExcelCompatibleFile } from '@/lib/combinedRecordsExport';
 import { isLateUploadDeadlinePassed } from '@/lib/lateUploadDeadline';
 
 interface CombinedRecord {
@@ -285,26 +286,12 @@ function TrainerCombinedSheetContent() {
     }
   };
 
-  const escapeCSV = (str: string): string => {
-    if (!str) return '';
-    const escaped = str.replace(/"/g, '""');
-    if (escaped.includes(',') || escaped.includes('"') || escaped.includes('\n')) {
-      return `"${escaped}"`;
-    }
-    return escaped;
-  };
-
-  const generateCSV = () => {
-    if (records.length === 0) {
-      alert('No records to export');
-      return;
-    }
-
+  const buildExportRows = () => {
     const headers = [
       'Date & Time',
       'School',
-      'Attendance Class',
-      'Attendance Image',
+      'Class',
+      'Image URL',
       'Report Topics',
       'Report Summary',
       'Report Notes',
@@ -314,39 +301,39 @@ function TrainerCombinedSheetContent() {
       const report = record.reports[0];
       const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
       const dateTime = format(new Date(sessionWhen), 'PPp');
-      const school = record.schoolName;
       const classLabel = report?.classLabel || record.attendance?.classLabel || '';
-      const imageUrl = record.attendance?.photoUrl || '';
+      const imageUrl = record.attendance?.photoUrl?.trim() || '';
 
       return [
         dateTime,
-        school,
+        record.schoolName,
         classLabel,
         imageUrl,
-        escapeCSV(report?.topics || ''),
-        escapeCSV(report?.summary || ''),
-        escapeCSV(report?.notes || ''),
+        report?.topics || '',
+        report?.summary || '',
+        report?.notes || '',
       ];
     });
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.join(',')),
-    ].join('\n');
+    return { headers, rows };
+  };
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `combined-sheet-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const generateCSV = () => {
+    if (records.length === 0) {
+      alert('No records to export');
+      return;
+    }
+    const { headers, rows } = buildExportRows();
+    downloadCsvFile(`combined-sheet-${format(new Date(), 'yyyy-MM-dd')}.csv`, headers, rows);
   };
 
   const generateExcel = () => {
-    generateCSV();
+    if (records.length === 0) {
+      alert('No records to export');
+      return;
+    }
+    const { headers, rows } = buildExportRows();
+    downloadExcelCompatibleFile(`combined-sheet-${format(new Date(), 'yyyy-MM-dd')}.xls`, headers, rows);
   };
 
   const generatePDF = () => {

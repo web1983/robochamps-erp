@@ -48,6 +48,11 @@ function sectionHeight(): number {
   return LINE_SM + 4;
 }
 
+function formatImageUrlLine(photoUrl?: string): string {
+  const url = photoUrl?.trim();
+  return url ? `Image URL: ${url}` : 'Image URL: —';
+}
+
 function measureCard(doc: jsPDF, record: CombinedRecordForPdf): number {
   const textW = CARD_W - PAD * 2;
   doc.setFontSize(9);
@@ -60,12 +65,7 @@ function measureCard(doc: jsPDF, record: CombinedRecordForPdf): number {
   if (record.attendance) {
     h += sectionHeight();
     h += blockHeight(doc, `Class: ${record.attendance.classLabel || '—'}`, textW, false);
-    h += blockHeight(
-      doc,
-      `Photo: ${record.attendance.photoUrl ? 'Yes' : 'No'}`,
-      textW,
-      false
-    );
+    h += blockHeight(doc, formatImageUrlLine(record.attendance.photoUrl), textW, false);
     const loc = record.attendance.geo
       ? `${record.attendance.geo.lat.toFixed(5)}, ${record.attendance.geo.lng.toFixed(5)}`
       : 'N/A';
@@ -157,15 +157,7 @@ function drawCardContent(
       maxWidth,
       false
     );
-    cy = drawBlock(
-      doc,
-      '',
-      `Photo: ${record.attendance.photoUrl ? 'Yes' : 'No'}`,
-      x,
-      cy,
-      maxWidth,
-      false
-    );
+    cy = drawBlock(doc, '', formatImageUrlLine(record.attendance.photoUrl), x, cy, maxWidth, false);
     const loc = record.attendance.geo
       ? `${record.attendance.geo.lat.toFixed(5)}, ${record.attendance.geo.lng.toFixed(5)}`
       : 'N/A';
