@@ -14,6 +14,7 @@ import {
 import StatsCard from '@/components/StatsCard';
 import MiniBarChart from '@/components/MiniBarChart';
 import QuickActionButton from '@/components/QuickActionButton';
+import ChartContainer from '@/components/charts/ChartContainer';
 import {
   Area,
   AreaChart,
@@ -26,7 +27,6 @@ import {
   PolarAngleAxis,
   RadialBar,
   RadialBarChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -513,7 +513,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="xl:col-span-2 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+          className="xl:col-span-2 min-w-0 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -523,29 +523,27 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
               </p>
             </div>
           </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyBars} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ChartContainer height={256}>
+            <BarChart data={weeklyBars} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip {...chartTooltip} />
                 <Bar dataKey="sessions" radius={[10, 10, 0, 0]} fill={COLORS.primary} animationDuration={900} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm flex flex-col items-center justify-center"
+          className="min-w-0 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm flex flex-col items-center justify-center"
         >
           <h3 className="text-lg font-bold text-[#0F172A] mb-1 w-full text-left">Attendance ring</h3>
           <p className="text-sm text-[#6B7280] mb-4 w-full text-left">14-day consistency index</p>
-          <div className="h-52 w-full relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-52 w-full min-w-0 relative">
+            <ChartContainer height={208}>
               <RadialBarChart
                 cx="50%"
                 cy="50%"
@@ -558,7 +556,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                 <RadialBar background={{ fill: '#E5E7EB' }} dataKey="value" cornerRadius={10} animationDuration={1000} />
               </RadialBarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <span className="text-3xl font-bold text-[#0F172A]">{attendancePercent}%</span>
             </div>
@@ -574,9 +572,8 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
         >
           <h3 className="text-lg font-bold text-[#0F172A] mb-1">Monthly volume</h3>
           <p className="text-sm text-[#6B7280] mb-4">Attendance sessions trend</p>
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyArea} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ChartContainer height={224}>
+            <AreaChart data={monthlyArea} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="areaGreen" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#22C55E" stopOpacity={0.35} />
@@ -589,21 +586,19 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
                 <Tooltip {...chartTooltip} />
                 <Area type="monotone" dataKey="sessions" stroke={COLORS.primary} fill="url(#areaGreen)" strokeWidth={2} animationDuration={900} />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.06 }}
-          className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+          className="min-w-0 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
         >
           <h3 className="text-lg font-bold text-[#0F172A] mb-1">Subject-wise sessions</h3>
           <p className="text-sm text-[#6B7280] mb-4">By class label from attendance</p>
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
+          <ChartContainer height={224}>
+            <BarChart
                 layout="vertical"
                 data={subjectBars.length ? subjectBars : [{ name: '—', value: 0 }]}
                 margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
@@ -618,8 +613,7 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
                   ))}
                 </Bar>
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
       </div>
 
@@ -641,18 +635,16 @@ export default function TeacherDashboard({ mode = 'teacher' }: { mode?: Analytic
             Open full analytics →
           </Link>
         </div>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={performanceLine} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="month" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip {...chartTooltip} />
-              <Line type="monotone" dataKey="sessions" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} animationDuration={900} />
-              <Line type="monotone" dataKey="completion" stroke="#22C55E" strokeWidth={2} dot={{ r: 3 }} animationDuration={900} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartContainer height={256}>
+          <LineChart data={performanceLine} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+            <XAxis dataKey="month" tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: COLORS.muted, fontSize: 12 }} axisLine={false} tickLine={false} />
+            <Tooltip {...chartTooltip} />
+            <Line type="monotone" dataKey="sessions" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} animationDuration={900} />
+            <Line type="monotone" dataKey="completion" stroke="#22C55E" strokeWidth={2} dot={{ r: 3 }} animationDuration={900} />
+          </LineChart>
+        </ChartContainer>
         <div className="flex gap-6 mt-2 text-xs text-[#6B7280]">
           <span className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-blue-500" /> Sessions

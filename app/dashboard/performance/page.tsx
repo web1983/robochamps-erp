@@ -10,11 +10,11 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
+import ChartContainer from '@/components/charts/ChartContainer';
 
 interface AttendanceRow {
   datetime: string;
@@ -92,9 +92,8 @@ export default function PerformancePage() {
         >
           <h2 className="text-lg font-bold text-[#0F172A] mb-1">Session trend</h2>
           <p className="text-sm text-[#6B7280] mb-4">Last six months</p>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <ChartContainer height={288}>
+            <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="perfArea" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#22C55E" stopOpacity={0.35} />
@@ -112,21 +111,19 @@ export default function PerformancePage() {
                 />
                 <Area type="monotone" dataKey="sessions" stroke="#22C55E" fill="url(#perfArea)" strokeWidth={2} />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="rounded-3xl border border-[#E5E7EB] bg-gradient-to-br from-[#0B1F14] to-[#143A28] p-6 text-white shadow-lg"
+          className="min-w-0 rounded-3xl border border-[#E5E7EB] bg-gradient-to-br from-[#0B1F14] to-[#143A28] p-6 text-white shadow-lg"
         >
           <h2 className="text-lg font-bold mb-1">Engagement index</h2>
           <p className="text-emerald-200/80 text-sm mb-6">Composite from recent session cadence</p>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <ChartContainer height={208}>
+            <LineChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
@@ -140,8 +137,7 @@ export default function PerformancePage() {
                 />
                 <Line type="monotone" dataKey="score" stroke="#4ADE80" strokeWidth={2} dot={{ r: 3, fill: '#22C55E' }} />
               </LineChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
       </div>
 

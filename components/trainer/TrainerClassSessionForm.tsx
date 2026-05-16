@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { captureTrainerLocation } from '@/lib/geolocation';
+import { compressImageForUpload } from '@/lib/compressImage';
 
 const fieldClass =
   'w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-emerald-400 [color-scheme:light]';
@@ -14,48 +16,71 @@ type TrainerClassSessionFormProps = {
 export default function TrainerClassSessionForm({ backHref = '/trainer/dashboard' }: TrainerClassSessionFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const [classLabel, setClassLabel] = useState('');
   const [datetime, setDatetime] = useState(() => new Date().toISOString().slice(0, 16));
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoProcessing, setPhotoProcessing] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null);
   const [locationError, setLocationError] = useState('');
+  const [locationLoading, setLocationLoading] = useState(false);
   const [topics, setTopics] = useState('');
   const [summary, setSummary] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const capturePhoto = () => fileInputRef.current?.click();
+  const revokePreviewUrl = useCallback(() => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  }, []);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => () => revokePreviewUrl(), [revokePreviewUrl]);
+
+  const capturePhoto = () => {
+    if (!photoProcessing) fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+    e.target.value = '';
+    if (!file) return;
+
+    setError('');
+    setPhotoProcessing(true);
+    revokePreviewUrl();
+    setPhoto(null);
+    setPhotoPreview(null);
+
+    try {
+      const compressed = await compressImageForUpload(file);
+      const previewUrl = URL.createObjectURL(compressed);
+      previewUrlRef.current = previewUrl;
+      setPhoto(compressed);
+      setPhotoPreview(previewUrl);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not process the photo. Try again.');
+    } finally {
+      setPhotoProcessing(false);
     }
   };
 
-  const getLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation not supported');
-      return;
+  const getLocation = async () => {
+    setLocationError('');
+    setLocationLoading(true);
+    try {
+      const coords = await captureTrainerLocation();
+      setLocation(coords);
+    } catch (err: unknown) {
+      setLocation(null);
+      setLocationError(err instanceof Error ? err.message : 'Could not get location');
+    } finally {
+      setLocationLoading(false);
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        });
-        setLocationError('');
-      },
-      () => setLocationError('Location access denied or unavailable'),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -213,26 +238,42 @@ export default function TrainerClassSessionForm({ backHref = '/trainer/dashboard
             <button
               type="button"
               onClick={capturePhoto}
-              className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 hover:opacity-90 transition-opacity"
+              disabled={photoProcessing}
+              className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-wait"
             >
-              Take photo
+              {photoProcessing ? 'Processing photo…' : photo ? 'Retake photo' : 'Take photo'}
             </button>
+            <p className="text-xs text-[#6B7280] mt-2">
+              Photos are resized on your device before upload to avoid memory issues on mobile.
+            </p>
             {photoPreview && (
-              <div className="mt-4">
-                <img src={photoPreview} alt="Class preview" className="w-full rounded-2xl border border-[#E5E7EB]" />
-                <p className="text-xs text-[#6B7280] mt-1.5 text-center">{photo?.name}</p>
-              </div>
+              <motion.div className="mt-4">
+                <img
+                  src={photoPreview}
+                  alt="Class preview"
+                  decoding="async"
+                  className="w-full max-h-64 object-cover rounded-2xl border border-[#E5E7EB]"
+                />
+                <p className="text-xs text-[#6B7280] mt-1.5 text-center">
+                  {photo?.name}
+                  {photo ? ` · ${(photo.size / 1024).toFixed(0)} KB` : ''}
+                </p>
+              </motion.div>
             )}
           </div>
           <div>
             <label className="block text-sm font-semibold text-[#0F172A] mb-2">Location (optional)</label>
             <button
               type="button"
-              onClick={getLocation}
-              className="w-full rounded-2xl border border-[#E5E7EB] bg-[#F4F7F5] py-3 text-sm font-semibold text-[#374151] hover:bg-[#EBF0EC] transition-colors"
+              onClick={() => void getLocation()}
+              disabled={locationLoading}
+              className="w-full rounded-2xl border border-[#E5E7EB] bg-[#F4F7F5] py-3 text-sm font-semibold text-[#374151] hover:bg-[#EBF0EC] transition-colors disabled:opacity-60 disabled:cursor-wait"
             >
-              Get location
+              {locationLoading ? 'Getting location…' : 'Get location'}
             </button>
+            <p className="text-xs text-[#6B7280] mt-2">
+              Allow location when prompted. Requires HTTPS and GPS/location enabled on your device.
+            </p>
             {location && (
               <div className="mt-3 p-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-sm text-emerald-800 space-y-0.5">
                 <p>
@@ -300,7 +341,9 @@ export default function TrainerClassSessionForm({ backHref = '/trainer/dashboard
 
         <button
           type="submit"
-          disabled={loading || !photo || !classLabel.trim() || !topics.trim() || !summary.trim()}
+          disabled={
+            loading || photoProcessing || !photo || !classLabel.trim() || !topics.trim() || !summary.trim()
+          }
           className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-3.5 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving class session…' : 'Submit attendance & report'}

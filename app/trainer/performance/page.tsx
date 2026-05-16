@@ -9,11 +9,11 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
+import ChartContainer from '@/components/charts/ChartContainer';
 import PageBackLink from '@/components/PageBackLink';
 
 interface AttendanceRow {
@@ -79,9 +79,8 @@ export default function TrainerPerformancePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
           <h2 className="text-lg font-bold text-[#0F172A] mb-4">Session trend</h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend}>
+          <ChartContainer height={288}>
+            <AreaChart data={trend}>
                 <defs>
                   <linearGradient id="trainerPerf" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#22C55E" stopOpacity={0.35} />
@@ -94,22 +93,19 @@ export default function TrainerPerformancePage() {
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB' }} />
                 <Area type="monotone" dataKey="sessions" stroke="#22C55E" fill="url(#trainerPerf)" strokeWidth={2} />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </div>
         <div className="rounded-3xl border border-[#E5E7EB] bg-gradient-to-br from-[#0B1F14] to-[#143A28] p-6 text-white shadow-lg">
           <h2 className="text-lg font-bold mb-4">Engagement index</h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trend}>
+          <ChartContainer height={288}>
+            <LineChart data={trend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
                 <Tooltip contentStyle={{ borderRadius: 12, background: '#0F172A', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} />
                 <Line type="monotone" dataKey="score" stroke="#4ADE80" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </div>
       </div>
     </div>

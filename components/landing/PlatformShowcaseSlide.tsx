@@ -1,6 +1,7 @@
 'use client';
 
 import MiniBarChart from '@/components/MiniBarChart';
+import ChartContainer from '@/components/charts/ChartContainer';
 import {
   Area,
   AreaChart,
@@ -8,7 +9,6 @@ import {
   BarChart,
   Line,
   LineChart,
-  ResponsiveContainer,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -75,8 +75,8 @@ function AdminPreview() {
           <StatCard title="Attendance" value="10k" color="#8B5CF6" />
           <StatCard title="Reports" value="1.2k" color="#F59E0B" />
         </div>
-        <div className="h-28 sm:h-36 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
+          <ChartContainer height={112}>
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="showcaseAdmin" x1="0" y1="0" x2="0" y2="1">
@@ -86,7 +86,7 @@ function AdminPreview() {
               </defs>
               <Area type="monotone" dataKey="v" stroke="#22C55E" fill="url(#showcaseAdmin)" strokeWidth={2} />
             </AreaChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </div>
     </div>
@@ -185,20 +185,20 @@ function AnalyticsPreview() {
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="h-32 sm:h-40 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
             <p className="text-[10px] text-[#6B7280] mb-1 px-1">Weekly attendance</p>
-            <ResponsiveContainer width="100%" height="85%">
+            <ChartContainer height={100}>
               <BarChart data={chartData}>
                 <XAxis dataKey="d" tick={{ fontSize: 9, fill: '#6B7280' }} axisLine={false} tickLine={false} />
                 <Bar dataKey="v" fill="#22C55E" radius={[4, 4, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
           <div className="h-32 sm:h-40 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
             <p className="text-[10px] text-[#6B7280] mb-1 px-1">Report trends</p>
-            <ResponsiveContainer width="100%" height="85%">
+            <ChartContainer height={100}>
               <LineChart data={chartData}>
                 <Line type="monotone" dataKey="v" stroke="#22C55E" strokeWidth={2} dot={false} />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </div>
       </div>
