@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import PageBackLink from '@/components/PageBackLink';
 import { format } from 'date-fns';
 import { downloadCombinedRecordsPdf } from '@/lib/combinedRecordsPdf';
+import { isLateUploadDeadlinePassed } from '@/lib/lateUploadDeadline';
 
 interface CombinedRecord {
   date: string;
@@ -118,13 +119,9 @@ function TrainerCombinedSheetContent() {
     }
   };
 
-  // Check if the deadline has passed for the selected month
   const isDeadlinePassed = (monthYear: string): boolean => {
     if (!monthYear) return false;
-    const [year, month] = monthYear.split('-').map(Number);
-    const deadlineDate = new Date(year, month, 5, 23, 59, 59); // 5th of the following month
-    const now = new Date();
-    return now > deadlineDate;
+    return isLateUploadDeadlinePassed(monthYear);
   };
 
   const handleSubmitRequest = async (e: React.FormEvent) => {
@@ -132,8 +129,9 @@ function TrainerCombinedSheetContent() {
     setRequestError('');
     setRequestSuccess(false);
 
-    if (!requestReason.trim()) {
-      setRequestError('Please provide a reason for the late upload');
+    const reason = requestReason.trim();
+    if (reason.length < 10) {
+      setRequestError('Please provide a reason of at least 10 characters');
       return;
     }
 
@@ -142,10 +140,18 @@ function TrainerCombinedSheetContent() {
       return;
     }
 
+    if (!isDeadlinePassed(uploadFormData.month)) {
+      setRequestError(
+        'The upload deadline has not passed yet. You can upload this sheet directly without approval.'
+      );
+      return;
+    }
+
     setSubmittingRequest(true);
 
     try {
-      const [year] = uploadFormData.month.split('-');
+      const [yearStr] = uploadFormData.month.split('-');
+      const year = parseInt(yearStr, 10);
       const response = await fetch('/api/late-upload-requests', {
         method: 'POST',
         headers: {
@@ -153,15 +159,19 @@ function TrainerCombinedSheetContent() {
         },
         body: JSON.stringify({
           month: uploadFormData.month,
-          year: parseInt(year, 10),
-          reason: requestReason.trim(),
+          year,
+          reason,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit request');
+        const detail =
+          Array.isArray(data.details) && data.details[0]?.message
+            ? data.details[0].message
+            : null;
+        throw new Error(data.error || detail || 'Failed to submit request');
       }
 
       setRequestSuccess(true);
@@ -445,10 +455,26 @@ function TrainerCombinedSheetContent() {
                   <form onSubmit={handleSubmitRequest} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Month for this request *
+                      </label>
+                      <input
+                        type="month"
+                        required
+                        value={uploadFormData.month}
+                        onChange={(e) => {
+                          setUploadFormData({ ...uploadFormData, month: e.target.value });
+                          setRequestError('');
+                        }}
+                        className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Reason for Late Upload *
                       </label>
                       <textarea
                         required
+                        minLength={10}
                         value={requestReason}
                         onChange={(e) => setRequestReason(e.target.value)}
                         placeholder="Please explain why you need to upload this sheet after the deadline..."
@@ -456,7 +482,7 @@ function TrainerCombinedSheetContent() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm bg-white"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Provide a detailed reason for the late upload request
+                        Minimum 10 characters ({requestReason.trim().length}/10)
                       </p>
                     </div>
                     {requestError && (

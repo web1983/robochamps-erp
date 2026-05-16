@@ -31,11 +31,11 @@ export const authOptions: NextAuthOptions = {
 
           console.log('Auth: Success for:', credentials.email, 'Role:', user.role);
           return {
-            id: user._id!,
+            id: user._id?.toString() ?? String(user._id),
             email: user.email,
             name: user.name,
             role: user.role,
-            schoolId: user.schoolId,
+            schoolId: user.schoolId != null ? String(user.schoolId) : undefined,
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
-        token.schoolId = (user as any).schoolId;
+        token.schoolId = (user as any).schoolId != null ? String((user as any).schoolId) : undefined;
       }
       return token;
     },

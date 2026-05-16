@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, UploadedCombinedSheet, LateUploadRequest } from '@/lib/db';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isLateUploadDeadlinePassed } from '@/lib/lateUploadDeadline';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -77,13 +78,8 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Enforce upload deadline: trainers can upload only until 5th of the following month
-    const [uploadYear, uploadMonth] = validated.month.split('-').map(Number);
-    const now = new Date();
-    // JS Date months are 0-based; adding 1 moves to next month (handles year rollover automatically)
-    const deadline = new Date(uploadYear, (uploadMonth - 1) + 1, 5, 23, 59, 59, 999);
-
-    if (now > deadline) {
+    // Enforce upload deadline: trainers can upload only until 5th of the following month (UTC)
+    if (isLateUploadDeadlinePassed(validated.month)) {
       // Check if there is an approved late upload request for this trainer and month
       const lateRequests = await getCollection<LateUploadRequest>('lateUploadRequests');
 

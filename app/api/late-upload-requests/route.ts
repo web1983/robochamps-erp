@@ -1,16 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { getCollection, LateUploadRequest, LateUploadRequestStatus } from '@/lib/db';
+import { getCollection, LateUploadRequest, LateUploadRequestStatus, User } from '@/lib/db';
+import { canRequestLateUpload } from '@/lib/lateUploadDeadline';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
 const requestSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/, 'Month must be in YYYY-MM format'),
-  year: z.number().int().min(2000).max(2100),
-  reason: z.string().min(10, 'Reason must be at least 10 characters'),
+  year: z.coerce.number().int().min(2000).max(2100),
+  reason: z.string().trim().min(10, 'Reason must be at least 10 characters'),
 });
+
+function formatZodError(error: z.ZodError): string {
+  const first = error.errors[0];
+  return first?.message || 'Invalid request data';
+}
+
+async function resolveTrainerSchoolId(
+  userId: string,
+  sessionSchoolId: string | undefined
+): Promise<string | null> {
+  if (sessionSchoolId) {
+    return sessionSchoolId.toString();
+  }
+  const { ObjectId } = await import('mongodb');
+  const users = await getCollection<User>('users');
+  let user: User | null = null;
+  try {
+    user = await users.findOne({ _id: new ObjectId(userId) as any });
+  } catch {
+    user = await users.findOne({ _id: userId as any });
+  }
+  const fromDb = user?.schoolId;
+  return fromDb != null ? fromDb.toString() : null;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +48,6 @@ export async function POST(request: NextRequest) {
     const role = (session.user as any).role;
     const userName = (session.user as any).name || '';
     const userEmail = (session.user as any).email || '';
-    const schoolId = (session.user as any).schoolId;
-
     if (role !== 'TRAINER_ROBOCHAMPS' && role !== 'TRAINER_SCHOOL') {
       return NextResponse.json(
         { error: 'Only trainers can request late upload approval' },
@@ -32,6 +55,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const body = await request.json();
+
+    let validated;
+    try {
+      const month = typeof body.month === 'string' ? body.month.trim() : body.month;
+      const [yFromMonth] = typeof month === 'string' ? month.split('-') : [];
+      validated = requestSchema.parse({
+        month,
+        year: body.year ?? (yFromMonth ? parseInt(yFromMonth, 10) : undefined),
+        reason: typeof body.reason === 'string' ? body.reason : body.reason,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: formatZodError(error), details: error.errors },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+
+    const schoolId = await resolveTrainerSchoolId(userId, (session.user as any).schoolId);
     if (!schoolId) {
       return NextResponse.json(
         { error: 'School not found. Please contact admin to assign you to a school.' },
@@ -39,35 +84,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-
-    let validated;
-    try {
-      validated = requestSchema.parse({
-        month: body.month,
-        year: body.year,
-        reason: body.reason,
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json(
-          { error: 'Validation error', details: error.errors },
-          { status: 400 }
-        );
-      }
-      throw error;
-    }
-
-    // Enforce that request is only needed/allowed after deadline
-    const [requestYear, requestMonth] = validated.month.split('-').map(Number);
-    const now = new Date();
-    const deadline = new Date(requestYear, (requestMonth - 1) + 1, 5, 23, 59, 59, 999);
-
-    if (now <= deadline) {
+    if (!canRequestLateUpload(validated.month)) {
       return NextResponse.json(
         {
           error:
-            'You can still upload this month\'s sheet directly. Late approval request is only needed after the 5th of next month.',
+            'You can still upload this month\'s sheet directly. Late approval is only needed after the 5th of the following month.',
           code: 'BEFORE_DEADLINE',
         },
         { status: 400 }
