@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
     let lat: string | null = null;
     let lng: string | null = null;
     let accuracy: string | null = null;
-    
+    let datetimeRaw: string | null = null;
+
     try {
       formData = await req.formData();
       photo = formData.get('photo') as File;
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
       lat = formData.get('lat') as string | null;
       lng = formData.get('lng') as string | null;
       accuracy = formData.get('accuracy') as string | null;
+      datetimeRaw = formData.get('datetime') as string | null;
     } catch (formError: any) {
       console.error('Attendance POST: Form data parsing error:', formError);
       return NextResponse.json(
@@ -165,6 +167,13 @@ export async function POST(request: NextRequest) {
     }
     
     const now = new Date();
+    let sessionDatetime = now;
+    if (datetimeRaw) {
+      const parsed = new Date(datetimeRaw);
+      if (!Number.isNaN(parsed.getTime())) {
+        sessionDatetime = parsed;
+      }
+    }
     let ObjectId;
     try {
       const mongodb = await import('mongodb');
@@ -200,7 +209,7 @@ export async function POST(request: NextRequest) {
       schoolId: schoolIdObj,
       trainerId: trainerIdObj,
       classLabel,
-      datetime: now,
+      datetime: sessionDatetime,
       photoUrl,
       ...(lat && lng && {
         geo: {

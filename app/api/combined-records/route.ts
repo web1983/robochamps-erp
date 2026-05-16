@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, AttendanceRecord, DailyReport, User, School } from '@/lib/db';
 import { schoolScopeFilter } from '@/lib/teacherSchoolScope';
+import { idEqualsClause, toIdString, toUtcDayKey } from '@/lib/matchMongoId';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,57 +30,54 @@ export async function GET(request: NextRequest) {
     const users = await getCollection<User>('users');
     const schools = await getCollection<School>('schools');
 
-    const { ObjectId } = await import('mongodb');
+    const attendanceClauses: Record<string, unknown>[] = [];
+    const reportsClauses: Record<string, unknown>[] = [];
 
-    // Build attendance query
-    let attendanceQuery: any = {};
     if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      attendanceQuery.trainerId = new ObjectId(userId) as any;
-    }
-    if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
-      attendanceQuery.schoolId = new ObjectId(schoolId) as any;
-    } else if (schoolIdFilter) {
-      attendanceQuery.schoolId = new ObjectId(schoolIdFilter) as any;
-    }
-    if (startDate || endDate) {
-      attendanceQuery.datetime = {};
-      if (startDate) {
-        attendanceQuery.datetime.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        attendanceQuery.datetime.$lte = end;
-      }
-    }
-
-    // Build reports query
-    let reportsQuery: any = {};
-    if (role === 'TRAINER_ROBOCHAMPS' || role === 'TRAINER_SCHOOL') {
-      reportsQuery.authorId = userId;
-      reportsQuery.type = 'TRAINER_CLASS';
+      const trainerClause = idEqualsClause('trainerId', userId);
+      const authorClause = idEqualsClause('authorId', userId);
+      if (trainerClause) attendanceClauses.push(trainerClause);
+      if (authorClause) reportsClauses.push(authorClause);
+      reportsClauses.push({ type: 'TRAINER_CLASS' });
     } else if (role === 'TEACHER') {
       if (!schoolId) {
         return NextResponse.json({ records: [] });
       }
-      reportsQuery.type = 'TRAINER_CLASS';
-      reportsQuery.schoolId = schoolScopeFilter(schoolId);
-    } else if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER') {
-      reportsQuery.schoolId = schoolId;
-    } else if (schoolIdFilter) {
-      reportsQuery.schoolId = schoolIdFilter;
+      attendanceClauses.push({ schoolId: schoolScopeFilter(schoolId) as unknown });
+      reportsClauses.push({ type: 'TRAINER_CLASS', schoolId: schoolScopeFilter(schoolId) as unknown });
     }
+
+    if (schoolId && role !== 'ADMIN' && role !== 'ROBOCHAMPS_TEACHER' && role !== 'TEACHER') {
+      const schoolClause = idEqualsClause('schoolId', schoolId);
+      if (schoolClause) {
+        attendanceClauses.push(schoolClause);
+        reportsClauses.push(schoolClause);
+      }
+    } else if (schoolIdFilter) {
+      const filterClause = idEqualsClause('schoolId', schoolIdFilter);
+      if (filterClause) {
+        attendanceClauses.push(filterClause);
+        reportsClauses.push(filterClause);
+      }
+    }
+
     if (startDate || endDate) {
-      reportsQuery.datetime = {};
+      const datetimeRange: Record<string, Date> = {};
       if (startDate) {
-        reportsQuery.datetime.$gte = new Date(startDate);
+        datetimeRange.$gte = new Date(startDate);
       }
       if (endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        reportsQuery.datetime.$lte = end;
+        datetimeRange.$lte = end;
       }
+      attendanceClauses.push({ datetime: datetimeRange });
+      reportsClauses.push({ datetime: datetimeRange });
     }
+
+    const attendanceQuery =
+      attendanceClauses.length > 0 ? { $and: attendanceClauses } : {};
+    const reportsQuery = reportsClauses.length > 0 ? { $and: reportsClauses } : {};
 
     // Fetch data
     const attendanceList = await attendanceRecords.find(attendanceQuery).sort({ datetime: -1 }).toArray();
@@ -157,45 +155,73 @@ export async function GET(request: NextRequest) {
       reports: any[];
     }>();
 
+    const combinedKey = (trainerId: string, schoolId: string, datetime: Date) =>
+      `${toUtcDayKey(datetime)}_${trainerId}_${schoolId}`;
+
+    const findMatchingCombinedKey = (
+      trainerId: string,
+      schoolId: string,
+      datetime: Date
+    ): string | null => {
+      const exact = combinedKey(trainerId, schoolId, datetime);
+      if (combinedMap.has(exact)) return exact;
+
+      const reportDay = toUtcDayKey(datetime);
+      for (const [key, entry] of combinedMap.entries()) {
+        if (entry.trainerId !== trainerId || entry.schoolId !== schoolId) continue;
+        const entryDay = toUtcDayKey(entry.date);
+        if (entryDay === reportDay) return key;
+        const hoursApart = Math.abs(entry.date.getTime() - datetime.getTime()) / 36e5;
+        if (hoursApart < 36 && entry.attendance) return key;
+      }
+      return null;
+    };
+
     // Add attendance records
     filteredAttendance.forEach((attendance: any) => {
-      const dateKey = new Date(attendance.datetime).toDateString();
-      const key = `${dateKey}_${attendance.trainerId}_${attendance.schoolId}`;
-      
+      const trainerId = toIdString(attendance.trainerId);
+      const schoolIdStr = toIdString(attendance.schoolId);
+      const when = new Date(attendance.datetime);
+      const key = combinedKey(trainerId, schoolIdStr, when);
+
       if (!combinedMap.has(key)) {
         combinedMap.set(key, {
-          date: new Date(attendance.datetime),
-          trainerId: attendance.trainerId?.toString() || '',
+          date: when,
+          trainerId,
           trainerName: attendance.trainerName,
           trainerEmail: attendance.trainerEmail,
-          schoolId: attendance.schoolId?.toString() || '',
+          schoolId: schoolIdStr,
           schoolName: attendance.schoolName,
           attendance: attendance,
           reports: [],
         });
       } else {
         const existing = combinedMap.get(key)!;
-        // Keep the earliest attendance for the day
-        if (new Date(attendance.datetime) < existing.date) {
+        if (when < existing.date) {
           existing.attendance = attendance;
-          existing.date = new Date(attendance.datetime);
+          existing.date = when;
         }
       }
     });
 
     // Add reports to combined records
     filteredReports.forEach((report: any) => {
-      const dateKey = new Date(report.datetime).toDateString();
-      const reportSchoolId = report.schoolId?.toString() || '';
-      const key = `${dateKey}_${report.authorId}_${reportSchoolId}`;
-      
+      const trainerId = toIdString(report.authorId);
+      const reportSchoolId = toIdString(report.schoolId);
+      const when = new Date(report.datetime);
+      const existingKey = findMatchingCombinedKey(trainerId, reportSchoolId, when);
+      const key = existingKey ?? combinedKey(trainerId, reportSchoolId, when);
+
       if (combinedMap.has(key)) {
         combinedMap.get(key)!.reports.push(report);
+        const entry = combinedMap.get(key)!;
+        if (!entry.attendance && when < entry.date) {
+          entry.date = when;
+        }
       } else {
-        // Create new entry for report-only records
         combinedMap.set(key, {
-          date: new Date(report.datetime),
-          trainerId: report.authorId?.toString() || '',
+          date: when,
+          trainerId,
           trainerName: report.trainerName,
           trainerEmail: report.trainerEmail,
           schoolId: reportSchoolId,

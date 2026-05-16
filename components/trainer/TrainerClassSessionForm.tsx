@@ -110,6 +110,7 @@ export default function TrainerClassSessionForm({ backHref = '/trainer/dashboard
       const formData = new FormData();
       formData.append('photo', photo);
       formData.append('classLabel', label);
+      formData.append('datetime', datetime);
       if (location) {
         formData.append('lat', location.lat.toString());
         formData.append('lng', location.lng.toString());

@@ -51,12 +51,20 @@ export async function POST(request: NextRequest) {
       (validated.type === 'TRAINER_CLASS' || validated.type === 'TEACHER_TRAINING' ? schoolId : undefined);
 
     const reports = await getCollection<DailyReport>('dailyReports');
+    const { ObjectId } = await import('mongodb');
     const now = new Date();
-    
+
+    const authorIdValue =
+      userId && ObjectId.isValid(userId) ? (new ObjectId(userId) as unknown as string) : userId;
+    const schoolIdValue =
+      finalSchoolId && ObjectId.isValid(finalSchoolId)
+        ? (new ObjectId(finalSchoolId) as unknown as string)
+        : finalSchoolId;
+
     const report: DailyReport = {
       type: validated.type,
-      schoolId: finalSchoolId,
-      authorId: userId,
+      schoolId: schoolIdValue,
+      authorId: authorIdValue,
       classLabel: validated.classLabel,
       topics: validated.topics,
       summary: validated.summary,
