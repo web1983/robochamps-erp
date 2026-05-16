@@ -24,13 +24,13 @@ const chartData = [
 
 function BrowserChrome() {
   return (
-    <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E5E7EB] bg-white">
+    <div className="flex items-center gap-2 min-w-0 px-4 py-3 border-b border-[#E5E7EB] bg-white">
       <div className="flex gap-1.5">
         <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
         <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
       </div>
-      <div className="flex-1 mx-2 h-7 rounded-lg bg-[#F4F7F5] border border-[#E5E7EB] flex items-center px-3">
+      <div className="flex-1 min-w-0 mx-2 h-7 rounded-lg bg-[#F4F7F5] border border-[#E5E7EB] flex items-center px-3">
         <span className="text-[10px] text-[#6B7280] truncate">robochamps-erp.vercel.app/dashboard</span>
       </div>
     </div>
@@ -65,9 +65,9 @@ function StatCard({ title, value, color }: { title: string; value: string; color
 
 function AdminPreview() {
   return (
-    <div className="flex min-h-[280px] sm:min-h-[320px]">
+    <div className="flex min-h-[280px] sm:min-h-[320px] min-w-0 w-full">
       <Sidebar active={0} />
-      <div className="flex-1 p-3 sm:p-4" style={{ background: BG }}>
+      <div className="flex-1 min-w-0 p-3 sm:p-4" style={{ background: BG }}>
         <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">Admin Dashboard</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
           <StatCard title="Users" value="248" color="#22C55E" />
@@ -75,7 +75,7 @@ function AdminPreview() {
           <StatCard title="Attendance" value="10k" color="#8B5CF6" />
           <StatCard title="Reports" value="1.2k" color="#F59E0B" />
         </div>
-        <div className="h-28 sm:h-36 rounded-xl bg-white border border-[#E5E7EB] p-2">
+        <div className="h-28 sm:h-36 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
@@ -95,9 +95,9 @@ function AdminPreview() {
 
 function TeacherPreview() {
   return (
-    <div className="flex min-h-[280px] sm:min-h-[320px]">
+    <div className="flex min-h-[280px] sm:min-h-[320px] min-w-0 w-full">
       <Sidebar active={1} />
-      <div className="flex-1 p-3 sm:p-4" style={{ background: BG }}>
+      <div className="flex-1 min-w-0 p-3 sm:p-4" style={{ background: BG }}>
         <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">School View Dashboard</p>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -125,9 +125,9 @@ function TeacherPreview() {
 
 function TrainerPreview() {
   return (
-    <div className="flex min-h-[280px] sm:min-h-[320px]">
+    <div className="flex min-h-[280px] sm:min-h-[320px] min-w-0 w-full">
       <Sidebar active={2} />
-      <div className="flex-1 p-3 sm:p-4" style={{ background: BG }}>
+      <div className="flex-1 min-w-0 p-3 sm:p-4" style={{ background: BG }}>
         <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">Trainer Dashboard</p>
         <div className="grid grid-cols-2 gap-2 mb-3">
           <StatCard title="Sessions" value="24" color="#22C55E" />
@@ -153,9 +153,9 @@ function TrainerPreview() {
 
 function AttendancePreview() {
   return (
-    <div className="flex min-h-[280px] sm:min-h-[320px]">
+    <div className="flex min-h-[280px] sm:min-h-[320px] min-w-0 w-full">
       <Sidebar active={1} />
-      <div className="flex-1 p-3 sm:p-4 flex items-center justify-center" style={{ background: BG }}>
+      <div className="flex-1 min-w-0 p-3 sm:p-4 flex items-center justify-center" style={{ background: BG }}>
         <div className="w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white p-4 sm:p-5 shadow-sm">
           <p className="text-sm font-bold text-[#0F172A] mb-1">Mark Attendance</p>
           <p className="text-xs text-[#6B7280] mb-4">Photo + location verification</p>
@@ -178,12 +178,12 @@ function AttendancePreview() {
 
 function AnalyticsPreview() {
   return (
-    <div className="flex min-h-[280px] sm:min-h-[320px]">
+    <div className="flex min-h-[280px] sm:min-h-[320px] min-w-0 w-full">
       <Sidebar active={0} />
-      <div className="flex-1 p-3 sm:p-4" style={{ background: BG }}>
+      <div className="flex-1 min-w-0 p-3 sm:p-4" style={{ background: BG }}>
         <p className="text-xs sm:text-sm font-bold text-[#0F172A] mb-3">Analytics Overview</p>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="h-32 sm:h-40 rounded-xl bg-white border border-[#E5E7EB] p-2">
+          <div className="h-32 sm:h-40 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
             <p className="text-[10px] text-[#6B7280] mb-1 px-1">Weekly attendance</p>
             <ResponsiveContainer width="100%" height="85%">
               <BarChart data={chartData}>
@@ -192,7 +192,7 @@ function AnalyticsPreview() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="h-32 sm:h-40 rounded-xl bg-white border border-[#E5E7EB] p-2">
+          <div className="h-32 sm:h-40 min-h-0 rounded-xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
             <p className="text-[10px] text-[#6B7280] mb-1 px-1">Report trends</p>
             <ResponsiveContainer width="100%" height="85%">
               <LineChart data={chartData}>

@@ -41,7 +41,7 @@ export default function PublicHeader({ mode = 'link', onNavClick }: PublicHeader
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         solidBar
           ? 'bg-white/80 backdrop-blur-xl border-b border-[#E5E7EB] shadow-sm'
           : 'bg-transparent'
@@ -107,10 +107,12 @@ export default function PublicHeader({ mode = 'link', onNavClick }: PublicHeader
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-[#E5E7EB] bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3"
+            key="public-mobile-nav"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:hidden border-t border-[#E5E7EB] bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3 pointer-events-auto"
           >
             {PUBLIC_NAV.map((item) =>
               mode === 'landing' && onNavClick ? (

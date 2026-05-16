@@ -90,10 +90,11 @@ textarea::placeholder {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling; hide stray horizontal overflow so body bg doesn't show as side gutters */
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 /* Optimize rendering */

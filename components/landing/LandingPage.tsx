@@ -210,15 +210,10 @@ export default function LandingPage() {
   };
 
   return (
-    <motion.div
-      className="min-h-screen text-[#0F172A] antialiased"
-      style={{ background: C.bg }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      {/* Navbar */}
+    <>
+      {/* Navbar outside overflow-x-hidden wrapper — ancestor overflow clips fixed layers on mobile and blocks taps */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
           scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-[#E5E7EB] shadow-sm' : 'bg-transparent'
         }`}
       >
@@ -266,10 +261,12 @@ export default function LandingPage() {
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-[#E5E7EB] bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3"
+              key="landing-mobile-nav"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:hidden border-t border-[#E5E7EB] bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3 pointer-events-auto"
             >
               {NAV.map((item) => (
                 <button
@@ -294,6 +291,12 @@ export default function LandingPage() {
         </AnimatePresence>
       </header>
 
+      <motion.div
+        className="min-h-screen w-full overflow-x-hidden text-[#0F172A] antialiased"
+        style={{ background: C.bg }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
       {/* Hero */}
       <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden">
         <motion.div
@@ -307,9 +310,9 @@ export default function LandingPage() {
           transition={{ duration: 6, repeat: Infinity }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-w-0">
+            <div className="min-w-0">
               <motion.p
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -352,16 +355,16 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.7 }}
-              className="relative"
+              className="relative min-w-0"
             >
               <div className="rounded-3xl border border-[#E5E7EB] bg-white/90 backdrop-blur-md shadow-2xl shadow-emerald-500/10 overflow-hidden">
-                <motion.div className="flex" style={{ background: 'linear-gradient(180deg, #07130D 0%, #0B1F14 100%)' }}>
+                <motion.div className="flex min-w-0 w-full" style={{ background: 'linear-gradient(180deg, #07130D 0%, #0B1F14 100%)' }}>
                   <div className="w-14 shrink-0 py-4 px-2 space-y-2 border-r border-white/10">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className={`h-2 rounded ${i === 1 ? 'bg-emerald-400/80 w-8' : 'bg-white/10 w-6'}`} />
                     ))}
                   </div>
-                  <div className="flex-1 p-4 sm:p-5" style={{ background: C.bg }}>
+                  <div className="flex-1 min-w-0 p-4 sm:p-5" style={{ background: C.bg }}>
                     <motion.div className="flex gap-2 mb-4">
                       <div className="h-2 w-24 rounded bg-[#E5E7EB]" />
                       <div className="h-2 w-16 rounded bg-emerald-200" />
@@ -386,7 +389,7 @@ export default function LandingPage() {
                         </motion.div>
                       ))}
                     </div>
-                    <div className="mt-3 h-24 rounded-2xl bg-white border border-[#E5E7EB] p-2">
+                    <div className="mt-3 h-24 min-h-0 rounded-2xl bg-white border border-[#E5E7EB] p-2 overflow-hidden">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={attendanceData}>
                           <defs>
@@ -548,10 +551,10 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-3">Analytics</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A]">Data-driven operations at a glance</h2>
           </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+          <div className="grid lg:grid-cols-2 gap-6 min-w-0">
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm min-w-0 overflow-hidden">
               <h3 className="font-bold text-[#0F172A] mb-4">Weekly Attendance</h3>
-              <motion.div className="h-56">
+              <motion.div className="h-56 min-w-0 w-full overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={attendanceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
@@ -563,9 +566,9 @@ export default function LandingPage() {
                 </ResponsiveContainer>
               </motion.div>
             </div>
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm min-w-0 overflow-hidden">
               <h3 className="font-bold text-[#0F172A] mb-4">Report Trends</h3>
-              <div className="h-56">
+              <div className="h-56 min-w-0 w-full overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={reportTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
@@ -577,11 +580,11 @@ export default function LandingPage() {
                 </ResponsiveContainer>
               </div>
             </div>
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm lg:col-span-2">
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div>
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm lg:col-span-2 min-w-0 overflow-hidden">
+              <div className="grid sm:grid-cols-2 gap-6 min-w-0">
+                <div className="min-w-0">
                   <h3 className="font-bold text-[#0F172A] mb-4">Performance Score</h3>
-                  <div className="h-48">
+                  <div className="h-48 min-w-0 w-full overflow-hidden">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={performanceData}>
                         <defs>
@@ -868,6 +871,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
