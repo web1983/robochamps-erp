@@ -118,39 +118,24 @@ export default function CombinedRecordsPage() {
     const rows: string[][] = [];
 
     records.forEach((record) => {
-      const dateTime = format(new Date(record.date), 'PPp');
+      const report = record.reports[0];
+      const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
+      const dateTime = format(new Date(sessionWhen), 'PPp');
       const trainer = `${record.trainerName} (${record.trainerEmail})`;
       const school = record.schoolName;
-      const attendance = record.attendance?.classLabel || '';
+      const classLabel = report?.classLabel || record.attendance?.classLabel || '';
       const imageUrl = record.attendance?.photoUrl || '';
 
-      if (record.reports.length > 0) {
-        // Create one row per report
-        record.reports.forEach((report) => {
-          rows.push([
-            dateTime,
-            trainer,
-            school,
-            attendance,
-            imageUrl,
-            report.topics || '',
-            report.summary || '',
-            report.notes || ''
-          ]);
-        });
-      } else {
-        // If no reports but has attendance, create one row
-        rows.push([
-          dateTime,
-          trainer,
-          school,
-          attendance,
-          imageUrl,
-          '',
-          '',
-          ''
-        ]);
-      }
+      rows.push([
+        dateTime,
+        trainer,
+        school,
+        classLabel,
+        imageUrl,
+        report?.topics || '',
+        report?.summary || '',
+        report?.notes || '',
+      ]);
     });
 
     // Convert to CSV format
@@ -337,84 +322,51 @@ export default function CombinedRecordsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {records.flatMap((record, idx) => {
-                    const dateTime = format(new Date(record.date), 'PPp');
+                  {records.map((record, idx) => {
+                    const report = record.reports[0];
+                    const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
+                    const dateTime = format(new Date(sessionWhen), 'PPp');
                     const trainer = `${record.trainerName} (${record.trainerEmail})`;
                     const school = record.schoolName;
-                    const attendance = record.attendance?.classLabel || '';
+                    const classLabel =
+                      report?.classLabel || record.attendance?.classLabel || '';
                     const imageUrl = record.attendance?.photoUrl;
+                    const rowKey = report?._id || record.attendance?._id || `${idx}`;
 
-                    if (record.reports.length > 0) {
-                      // Create one row per report
-                      return record.reports.map((report, rIdx) => (
-                        <tr key={`${record.date}_${record.trainerId}_${record.schoolId}_${idx}_${rIdx}`}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {dateTime}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {trainer}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {school}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {attendance || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            {imageUrl ? (
-                              <img
-                                src={imageUrl}
-                                alt="Attendance"
-                                className="w-20 h-20 object-cover rounded border border-gray-300"
-                              />
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.topics || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.summary || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.notes || <span className="text-gray-400">-</span>}
-                          </td>
-                        </tr>
-                      ));
-                    } else {
-                      // If no reports but has attendance, create one row
-                      return (
-                        <tr key={`${record.date}_${record.trainerId}_${record.schoolId}_${idx}`}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {dateTime}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {trainer}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {school}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {attendance || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            {imageUrl ? (
-                              <img
-                                src={imageUrl}
-                                alt="Attendance"
-                                className="w-20 h-20 object-cover rounded border border-gray-300"
-                              />
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                        </tr>
-                      );
-                    }
+                    return (
+                      <tr key={rowKey}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {dateTime}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{trainer}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {school}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {classLabel || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt="Attendance"
+                              className="w-20 h-20 object-cover rounded border border-gray-300"
+                            />
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.topics || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.summary || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.notes || <span className="text-gray-400">-</span>}
+                        </td>
+                      </tr>
+                    );
                   })}
                 </tbody>
               </table>

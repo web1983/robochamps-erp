@@ -310,25 +310,23 @@ function TrainerCombinedSheetContent() {
       'Report Notes',
     ];
 
-    const rows = records.flatMap((record) => {
-      const dateTime = format(new Date(record.date), 'PPp');
+    const rows = records.map((record) => {
+      const report = record.reports[0];
+      const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
+      const dateTime = format(new Date(sessionWhen), 'PPp');
       const school = record.schoolName;
-      const attendance = record.attendance?.classLabel || '';
+      const classLabel = report?.classLabel || record.attendance?.classLabel || '';
       const imageUrl = record.attendance?.photoUrl || '';
 
-      if (record.reports.length > 0) {
-        return record.reports.map((report) => [
-          dateTime,
-          school,
-          attendance,
-          imageUrl,
-          escapeCSV(report.topics || ''),
-          escapeCSV(report.summary || ''),
-          escapeCSV(report.notes || ''),
-        ]);
-      } else {
-        return [[dateTime, school, attendance, imageUrl, '', '', '']];
-      }
+      return [
+        dateTime,
+        school,
+        classLabel,
+        imageUrl,
+        escapeCSV(report?.topics || ''),
+        escapeCSV(report?.summary || ''),
+        escapeCSV(report?.notes || ''),
+      ];
     });
 
     const csvContent = [
@@ -723,81 +721,52 @@ function TrainerCombinedSheetContent() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {records.flatMap((record, idx) => {
-                    const dateTime = format(new Date(record.date), 'PPp');
+                  {records.map((record, idx) => {
+                    const report = record.reports[0];
+                    const sessionWhen = report?.datetime || record.attendance?.datetime || record.date;
+                    const dateTime = format(new Date(sessionWhen), 'PPp');
                     const school = record.schoolName;
-                    const attendance = record.attendance?.classLabel || '';
+                    const classLabel =
+                      report?.classLabel || record.attendance?.classLabel || '';
                     const imageUrl = record.attendance?.photoUrl;
+                    const rowKey = report?._id || record.attendance?._id || `${idx}`;
 
-                    if (record.reports.length > 0) {
-                      return record.reports.map((report, rIdx) => (
-                        <tr key={`${record.date}_${record.trainerId}_${record.schoolId}_${idx}_${rIdx}`}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {dateTime}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {school}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {attendance || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            {imageUrl ? (
-                              <a
-                                href={imageUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-emerald-600 hover:text-emerald-700 hover:underline"
-                              >
-                                View Image
-                              </a>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.topics || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.summary || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {report.notes || <span className="text-gray-400">-</span>}
-                          </td>
-                        </tr>
-                      ));
-                    } else {
-                      return (
-                        <tr key={`${record.date}_${record.trainerId}_${record.schoolId}_${idx}`}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {dateTime}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {school}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {attendance || <span className="text-gray-400">-</span>}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            {imageUrl ? (
-                              <a
-                                href={imageUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-emerald-600 hover:text-emerald-700 hover:underline"
-                              >
-                                View Image
-                              </a>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                          <td className="px-6 py-4 text-sm text-gray-400">-</td>
-                        </tr>
-                      );
-                    }
+                    return (
+                      <tr key={rowKey}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {dateTime}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {school}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {classLabel || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {imageUrl ? (
+                            <a
+                              href={imageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-600 hover:text-emerald-700 hover:underline"
+                            >
+                              View Image
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.topics || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.summary || <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {report?.notes || <span className="text-gray-400">-</span>}
+                        </td>
+                      </tr>
+                    );
                   })}
                 </tbody>
               </table>

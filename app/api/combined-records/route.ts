@@ -3,7 +3,62 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 import { getCollection, AttendanceRecord, DailyReport, User, School } from '@/lib/db';
 import { schoolScopeFilter } from '@/lib/teacherSchoolScope';
-import { idEqualsClause, toIdString, toUtcDayKey } from '@/lib/matchMongoId';
+import { idEqualsClause, toIdString } from '@/lib/matchMongoId';
+
+const SESSION_MATCH_MS = 3 * 60 * 60 * 1000;
+const TIGHT_TIME_MATCH_MS = 20 * 60 * 1000;
+
+function normalizeClassLabel(label?: string | null): string {
+  return (label || '').trim().toLowerCase();
+}
+
+type CombinedEntry = {
+  date: Date;
+  trainerId: string;
+  trainerName: string;
+  trainerEmail: string;
+  schoolId: string;
+  schoolName: string;
+  attendance?: Record<string, unknown>;
+  reports: Record<string, unknown>[];
+};
+
+function findAttendanceForReport(
+  report: Record<string, unknown>,
+  attendances: Record<string, unknown>[],
+  usedAttendanceIds: Set<string>
+): Record<string, unknown> | null {
+  const trainerId = toIdString(report.authorId);
+  const schoolId = toIdString(report.schoolId);
+  const reportTime = new Date(report.datetime as string | Date).getTime();
+  const reportLabel = normalizeClassLabel(report.classLabel as string | undefined);
+
+  let labelMatch: Record<string, unknown> | null = null;
+  let labelMatchDiff = Infinity;
+  let timeMatch: Record<string, unknown> | null = null;
+  let timeMatchDiff = Infinity;
+
+  for (const att of attendances) {
+    const attId = toIdString(att._id);
+    if (!attId || usedAttendanceIds.has(attId)) continue;
+    if (toIdString(att.trainerId) !== trainerId) continue;
+    if (toIdString(att.schoolId) !== schoolId) continue;
+
+    const diff = Math.abs(new Date(att.datetime as string | Date).getTime() - reportTime);
+    if (diff > SESSION_MATCH_MS) continue;
+
+    if (normalizeClassLabel(att.classLabel as string | undefined) === reportLabel && diff < labelMatchDiff) {
+      labelMatch = att;
+      labelMatchDiff = diff;
+    }
+    if (diff < TIGHT_TIME_MATCH_MS && diff < timeMatchDiff) {
+      timeMatch = att;
+      timeMatchDiff = diff;
+    }
+  }
+
+  return labelMatch ?? timeMatch;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -142,97 +197,58 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Combine records by matching date, trainer, and school
-    // Group by date (same day), trainer, and school
-    const combinedMap = new Map<string, {
-      date: Date;
-      trainerId: string;
-      trainerName: string;
-      trainerEmail: string;
-      schoolId: string;
-      schoolName: string;
-      attendance?: any;
-      reports: any[];
-    }>();
+    // One combined row per class session (aligned with session history), not per calendar day
+    const usedAttendanceIds = new Set<string>();
+    const combinedEntries: CombinedEntry[] = [];
 
-    const combinedKey = (trainerId: string, schoolId: string, datetime: Date) =>
-      `${toUtcDayKey(datetime)}_${trainerId}_${schoolId}`;
+    const reportsSorted = [...filteredReports].sort(
+      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+    );
 
-    const findMatchingCombinedKey = (
-      trainerId: string,
-      schoolId: string,
-      datetime: Date
-    ): string | null => {
-      const exact = combinedKey(trainerId, schoolId, datetime);
-      if (combinedMap.has(exact)) return exact;
-
-      const reportDay = toUtcDayKey(datetime);
-      for (const [key, entry] of combinedMap.entries()) {
-        if (entry.trainerId !== trainerId || entry.schoolId !== schoolId) continue;
-        const entryDay = toUtcDayKey(entry.date);
-        if (entryDay === reportDay) return key;
-        const hoursApart = Math.abs(entry.date.getTime() - datetime.getTime()) / 36e5;
-        if (hoursApart < 36 && entry.attendance) return key;
+    for (const report of reportsSorted) {
+      const matchedAttendance = findAttendanceForReport(
+        report,
+        filteredAttendance,
+        usedAttendanceIds
+      );
+      if (matchedAttendance) {
+        usedAttendanceIds.add(toIdString(matchedAttendance._id));
       }
-      return null;
-    };
 
-    // Add attendance records
-    filteredAttendance.forEach((attendance: any) => {
-      const trainerId = toIdString(attendance.trainerId);
-      const schoolIdStr = toIdString(attendance.schoolId);
-      const when = new Date(attendance.datetime);
-      const key = combinedKey(trainerId, schoolIdStr, when);
-
-      if (!combinedMap.has(key)) {
-        combinedMap.set(key, {
-          date: when,
-          trainerId,
-          trainerName: attendance.trainerName,
-          trainerEmail: attendance.trainerEmail,
-          schoolId: schoolIdStr,
-          schoolName: attendance.schoolName,
-          attendance: attendance,
-          reports: [],
-        });
-      } else {
-        const existing = combinedMap.get(key)!;
-        if (when < existing.date) {
-          existing.attendance = attendance;
-          existing.date = when;
-        }
-      }
-    });
-
-    // Add reports to combined records
-    filteredReports.forEach((report: any) => {
-      const trainerId = toIdString(report.authorId);
-      const reportSchoolId = toIdString(report.schoolId);
       const when = new Date(report.datetime);
-      const existingKey = findMatchingCombinedKey(trainerId, reportSchoolId, when);
-      const key = existingKey ?? combinedKey(trainerId, reportSchoolId, when);
+      combinedEntries.push({
+        date: when,
+        trainerId: toIdString(report.authorId),
+        trainerName: report.trainerName as string,
+        trainerEmail: report.trainerEmail as string,
+        schoolId: toIdString(report.schoolId),
+        schoolName: report.schoolName as string,
+        attendance: matchedAttendance ?? undefined,
+        reports: [report],
+      });
+    }
 
-      if (combinedMap.has(key)) {
-        combinedMap.get(key)!.reports.push(report);
-        const entry = combinedMap.get(key)!;
-        if (!entry.attendance && when < entry.date) {
-          entry.date = when;
-        }
-      } else {
-        combinedMap.set(key, {
-          date: when,
-          trainerId,
-          trainerName: report.trainerName,
-          trainerEmail: report.trainerEmail,
-          schoolId: reportSchoolId,
-          schoolName: report.schoolName,
-          reports: [report],
-        });
-      }
-    });
+    const attendanceSorted = [...filteredAttendance].sort(
+      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+    );
 
-    // Convert to array and sort by date
-    const combinedRecords = Array.from(combinedMap.values())
+    for (const attendance of attendanceSorted) {
+      const attId = toIdString(attendance._id);
+      if (attId && usedAttendanceIds.has(attId)) continue;
+
+      combinedEntries.push({
+        date: new Date(attendance.datetime),
+        trainerId: toIdString(attendance.trainerId),
+        trainerName: attendance.trainerName as string,
+        trainerEmail: attendance.trainerEmail as string,
+        schoolId: toIdString(attendance.schoolId),
+        schoolName: attendance.schoolName as string,
+        attendance,
+        reports: [],
+      });
+    }
+
+    const combinedRecords = combinedEntries
       .map((record: any) => ({
         ...record,
         attendance: record.attendance ? {
