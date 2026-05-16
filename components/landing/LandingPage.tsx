@@ -798,12 +798,6 @@ export default function LandingPage() {
             <GlowButton href="/login" variant="outline" className="!border-white/30 !text-white !bg-white/10 hover:!bg-white/20">
               Login to Dashboard
             </GlowButton>
-            <a
-              href="mailto:pd@robowunder.com"
-              className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/10 transition-colors"
-            >
-              Book Demo
-            </a>
           </div>
         </div>
       </section>
