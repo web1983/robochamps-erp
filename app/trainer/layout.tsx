@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import { DashboardSearchProvider, useDashboardSearch } from '@/contexts/DashboardSearchContext';
 import { useSession, signOut } from 'next-auth/react';
@@ -50,9 +51,9 @@ function TrainerHeaderBar({
           </h1>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <button
-              type="button"
-              className="relative touch-manipulation rounded-xl border border-[#E5E7EB] bg-gray-50 p-2 sm:p-2.5 hover:bg-gray-100"
+            <Link
+              href="/trainer/notifications"
+              className="relative touch-manipulation inline-flex items-center justify-center rounded-xl border border-[#E5E7EB] bg-gray-50 p-2 sm:p-2.5 hover:bg-gray-100 transition-colors"
               aria-label="Notifications"
             >
               <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -65,7 +66,7 @@ function TrainerHeaderBar({
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-bold text-white">
                 3
               </span>
-            </button>
+            </Link>
 
             <div className="flex items-center gap-1.5 border-l border-[#E5E7EB] pl-1.5 sm:gap-2 sm:pl-3">
               <div className="hidden min-w-0 text-right sm:block">
