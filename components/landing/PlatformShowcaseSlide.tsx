@@ -31,7 +31,7 @@ function BrowserChrome() {
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
       </div>
       <div className="flex-1 min-w-0 mx-2 h-7 rounded-lg bg-[#F4F7F5] border border-[#E5E7EB] flex items-center px-3">
-        <span className="text-[10px] text-[#6B7280] truncate">robochamps-erp.vercel.app/dashboard</span>
+        <span className="text-[10px] text-[#6B7280] truncate">erp.robochamps.in/dashboard</span>
       </div>
     </div>
   );
